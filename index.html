@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>thelocalhost.in | Developer Hub for Open Source PoCs</title>
+
+    <meta
+      name="description"
+      content="The official developer hub for thelocalhost.in. Explore and contribute to our collection of free, open-source Proof-of-Concept (PoC) software projects."
+    />
+    <meta
+      name="keywords"
+      content="thelocalhost.in, developer hub, open source, PoC, proof of concept, free software, GitHub, developer projects, code repository"
+    />
+    <meta name="author" content="thelocalhost.in Community" />
+
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+    <link rel="stylesheet" href="resources/style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <a href="#home" class="logo">
+          <img
+            src="resources/logo_transparent.png"
+            alt="thelocalhost.in Logo"
+          />
+        </a>
+        <nav>
+          <a href="#home">Home</a>
+          <a href="#about">What is PoC</a>
+          <a href="#project-hub">Projects</a>
+          <!-- <a href="#contact">Contribute</a> -->
+        </nav>
+      </div>
+    </header>
+
+    <section id="home">
+      <div class="container content-wrapper">
+        <h1>The Developer Hub: Pure PoC. Pure Open Source.</h1>
+        <p>
+          A non-commercial collection of experimental, free, and open-source
+          Proof-of-Concept projects built by the community. 
+        </p>
+        <a href="#project-hub" class="cta-button">Explore Projects & Code</a>
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <section id="about" class="container">
+      <h2>What is a Proof-of-Concept Hub?</h2>
+      <p
+        style="
+          max-width: 800px;
+          margin: 0 auto 50px;
+          text-align: center;
+          color: var(--mid-grey);
+        "
+      >
+        This repository, **thelocalhost.in**, is dedicated to showcasing
+        foundational ideas, experimental libraries, and early-stage software
+        development concepts (PoCs). Everything here is **free, open-source, and
+        available to fork, use, and modify** without restriction. It is a
+        sandbox for innovation, not a commercial storefront.
+      </p>
+
+      <div class="value-props">
+        <div class="value-prop">
+          <h3 style="color: var(--accent-teal)">🧪 Experiment</h3>
+          <p>
+            Test boundaries and explore new languages, frameworks, and APIs.
+            Your ideas find a home here.
+          </p>
+        </div>
+        <div class="value-prop">
+          <h3 style="color: var(--accent-teal)">🌐 Open Source</h3>
+          <p>
+            Every line of code is transparent and accessible. Use it, learn from
+            it, improve it—no strings attached.
+          </p>
+        </div>
+        <div class="value-prop">
+          <h3 style="color: var(--accent-teal)">🤝 Contribute</h3>
+          <p>
+            Help shape the future of these projects. Fork a repository, submit a
+            PR, or start a discussion.
+          </p>
+        </div>
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <section id="project-hub" class="container">
+      <h2>Explore Our Proof-of-Concept Projects</h2>
+
+      <div class="hub-wrapper">
+        <div class="project-menu-panel">
+          <div class="search-container">
+            <input
+              type="search"
+              class="project-search"
+              placeholder="Search by Project Name or Technology..."
+            />
+          </div>
+
+          <div class="project-menu">
+            <a href="#" class="menu-item active" data-project-id="1">
+              <span class="badge">Python, React</span>
+              <h4>FPML chatbot</h4>
+              <p>
+                Chatbot interface that allows users to quickly retrieve technical documentation and structural information for any specified FpML tag (e.g., <trade>). 
+                The chatbot will draw its answers from the official FpML XML Schema Definition (XSD) files and standard documentation..
+              </p>
+            </a>
+
+           
+          </div>
+        </div>
+
+        <div class="project-detail-view" id="detail-panel">
+          <div id="initial-detail-content">
+            <div class="detail-header">
+              <span class="badge">Python, React</span>
+              <h3>FPML ChatBot</h3>
+              <p style="font-size: 1.1em; color: var(--mid-grey)">
+                Intelligent chatbot interface that allows users to quickly retrieve technical documentation and structural information for any specified FpML tag (e.g., ).
+                 The chatbot will draw its answers from the official FpML XML Schema Definition (XSD) files and standard documentation.
+              </p>
+            </div>
+
+            <div class="detail-content">
+              <h4>Technical Focus:</h4>
+              <ul>
+                <li>**Language:** Python,React</li>
+                <li>
+                  **Goal:**  Provide a plain-language summary of what the FpML element or attribute is used for (e.g., "The element is the root container for trade-level information and history.")..
+                </li>
+                <li>
+                  **Efficiency:** Good.
+                </li>
+              </ul>
+
+              <h4>Community Needs:</h4>
+              <p style="color: var(--mid-grey)">
+                We're looking for help with comprehensive documentation,
+                benchmark testing across various platforms, and exploring
+                integration patterns with other Rust ecosystems.
+              </p>
+            </div>
+
+            <div class="detail-actions">
+              <a
+                href="https://github.com/thelocalhost-org/corelib-poc"
+                target="_blank"
+                class="cta-button"
+                >Clone Repository</a
+              >
+              <a
+                href="https://corelib-poc.thelocalhost.in/demo"
+                target="_blank"
+                class="cta-button secondary"
+                >View Live Demo</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+  
+      <div class="section-divider"></div>
+    </section>
+
+    <footer>
+      <div class="container">
+        &copy; 2025 thelocalhost.in Developer Hub. Built by the community. |
+        <a href="#">Code of Conduct</a> |
+        <a href="#">License (MIT/Apache 2.0)</a>
+      </div>
+    </footer>
+
+    <script>
+      // Note: Full search and dynamic loading requires actual JavaScript logic.
+      // This is a placeholder to show the required interaction flow.
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const menuItems = document.querySelectorAll(".menu-item");
+        const detailPanel = document.getElementById("detail-panel");
+
+        menuItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            // Remove 'active' class from all, add to clicked item
+            menuItems.forEach((i) => i.classList.remove("active"));
+            item.classList.add("active");
+
+            // CONCEPTUAL: In a real app, you would fetch and load the detail HTML here
+            const projectId = item.getAttribute("data-project-id");
+
+            // Placeholder for detail content based on ID
+            const details = {
+              1: `
+                            <div class="detail-header">
+                                <span class="badge">Python, React</span>
+                                <h3>PoC: FPML Chatbot</h3>
+                                <p style="font-size: 1.1em; color: var(--mid-grey);">
+                                    Intelligent chatbot interface that allows users to quickly retrieve technical documentation and structural information for any specified FpML tag (e.g., <trade>). The chatbot will draw its answers from the official FpML XML Schema Definition (XSD) files and standard documentation.
+                                </p>
+                            </div>
+                            
+                            <div class="detail-content">
+                                <h4>Technical Focus:</h4>
+                                <ul>
+                                    <li>**Language:** Python,React</li>
+                                    <li>**Goal:** Provide a plain-language summary of what the FpML element or attribute is used for (e.g., "The <trade> element is the root container for trade-level information and history.").</li>
+                                    <li>**Efficiency:** Good</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="detail-actions">
+                                <a href="https://github.com/thelocalhost-org/corelib-poc" target="_blank" class="cta-button">Clone Repository</a>
+                                <a href="https://corelib-poc.thelocalhost.in/demo" target="_blank" class="cta-button secondary">View Live Demo</a>
+                            </div>
+                        `,
+              2: `
+                            <div class="detail-header">
+                                <span class="badge">Python, Go, Network</span>
+                                <h3>PoC: Router Emulator - Network Algorithm Testing</h3>
+                                <p style="font-size: 1.1em; color: var(--mid-grey);">
+                                    This project simulates large-scale network traffic to test novel routing algorithms, focusing on minimizing packet loss in congested environments. The PoC compares performance between Python and Go implementations.
+                                </p>
+                            </div>
+
+                            <img src="https://via.placeholder.com/700x350/EFEFEF/333333?text=Router+Emulator+Simulation+View" alt="Router Emulator Simulation View" class="project-image">
+                            
+                            <div class="detail-content">
+                                <h4>Technical Focus:</h4>
+                                <ul>
+                                    <li>**Language:** Python / Go</li>
+                                    <li>**Goal:** Visualize algorithm efficiency and bottlenecks under high network load scenarios.</li>
+                                    <li>**Features:** Real-time data dashboard and algorithm comparison tool.</li>
+                                </ul>
+                                
+                                <h4>Community Needs:</h4>
+                                <p style="color: var(--mid-grey);">
+                                    Seeking developers for adding new algorithm comparisons, improving the simulation accuracy, and expanding the visualization toolkit.
+                                </p>
+                            </div>
+                            
+                            <div class="detail-actions">
+                                <a href="https://github.com/thelocalhost-org/router-emulator-poc" target="_blank" class="cta-button">Clone Repository</a>
+                                <a href="https://router-emulator-poc.thelocalhost.in/demo" target="_blank" class="cta-button secondary">View Live Demo</a>
+                            </div>
+                        `,
+              3: `
+                            <div class="detail-header">
+                                <span class="badge">JavaScript, Serverless</span>
+                                <h3>PoC: Synapse Starter - Serverless Starter Kit</h3>
+                                <p style="font-size: 1.1em; color: var(--mid-grey);">
+                                    **Synapse Starter** is a template for rapid serverless function deployment, showing how to connect a simple frontend to a cloud-based API gateway. It prioritizes ease of setup and minimal dependencies.
+                                </p>
+                            </div>
+
+                            <img src="https://via.placeholder.com/700x350/EFEFEF/333333?text=Synapse+Serverless+Architecture" alt="Synapse Serverless Architecture Diagram" class="project-image">
+                            
+                            <div class="detail-content">
+                                <h4>Technical Focus:</h4>
+                                <ul>
+                                    <li>**Language:** JavaScript (Node.js)</li>
+                                    <li>**Goal:** Provide the quickest path to a running serverless PoC for educational purposes.</li>
+                                    <li>**Architecture:** Functions as a Service (FaaS) implementation guide.</li>
+                                </ul>
+                                
+                                <h4>Community Needs:</h4>
+                                <p style="color: var(--mid-grey);">
+                                    Seeking UI/UX feedback for the included boilerplate frontend, and alternative framework implementations (e.g., Python, Go functions).
+                                </p>
+                            </div>
+                            
+                            <div class="detail-actions">
+                                <a href="https://github.com/thelocalhost-org/synapse-starter-poc" target="_blank" class="cta-button">Clone Repository</a>
+                                <a href="https://synapse-starter-poc.thelocalhost.in/demo" target="_blank" class="cta-button secondary">View Live Demo</a>
+                            </div>
+                        `,
+              4: `
+                            <div class="detail-header">
+                                <span class="badge">Java, CLI</span>
+                                <h3>PoC: J-Stream CLI</h3>
+                                <p style="font-size: 1.1em; color: var(--mid-grey);">
+                                    A command-line interface utility built in Java, demonstrating advanced usage of Java's Stream API for parallel and concurrent data processing directly from the terminal.
+                                </p>
+                            </div>
+
+                            <img src="https://via.placeholder.com/700x350/EFEFEF/333333?text=Java+CLI+Terminal+Mockup" alt="Java CLI Terminal Mockup" class="project-image">
+                            
+                            <div class="detail-content">
+                                <h4>Technical Focus:</h4>
+                                <ul>
+                                    <li>**Language:** Java 17+</li>
+                                    <li>**Goal:** Showcase efficient concurrent processing for large text files.</li>
+                                    <li>**Features:** Custom argument parsing and real-time output visualization.</li>
+                                </ul>
+                                
+                                <h4>Community Needs:</h4>
+                                <p style="color: var(--mid-grey);">
+                                    We need help creating more complex use cases and optimizing the memory usage during large-file operations.
+                                </p>
+                            </div>
+                            
+                            <div class="detail-actions">
+                                <a href="#" target="_blank" class="cta-button">Clone Repository</a>
+                                <a href="#" target="_blank" class="cta-button secondary">View Live Demo (N/A)</a>
+                            </div>
+                        `,
+              5: `
+                            <div class="detail-header">
+                                <span class="badge">TypeScript, React</span>
+                                <h3>PoC: React Microfront</h3>
+                                <p style="font-size: 1.1em; color: var(--mid-grey);">
+                                    A Proof-of-Concept for integrating multiple small, independent React applications (micro-frontends) into a single shell using Module Federation for dynamic loading.
+                                </p>
+                            </div>
+
+                            <img src="https://via.placeholder.com/700x350/EFEFEF/333333?text=Microfrontend+Architecture+Diagram" alt="Microfrontend Architecture Diagram" class="project-image">
+                            
+                            <div class="detail-content">
+                                <h4>Technical Focus:</h4>
+                                <ul>
+                                    <li>**Language:** TypeScript, React</li>
+                                    <li>**Goal:** Demonstrate framework independence and shared dependency management.</li>
+                                    <li>**Tools:** Webpack 5 (Module Federation).</li>
+                                </ul>
+                                
+                                <h4>Community Needs:</h4>
+                                <p style="color: var(--mid-grey);">
+                                    Seeking feedback on cross-cutting concerns like shared state management and authenticated user context sharing across the micro-apps.
+                                </p>
+                            </div>
+                            
+                            <div class="detail-actions">
+                                <a href="#" target="_blank" class="cta-button">Clone Repository</a>
+                                <a href="#" target="_blank" class="cta-button secondary">View Live Demo</a>
+                            </div>
+                        `
+            };
+
+            detailPanel.innerHTML = details[projectId];
+          });
+        });
+
+        // Conceptual Search Logic (for UI demonstration)
+        const searchInput = document.querySelector(".project-search");
+        searchInput.addEventListener("keyup", (e) => {
+          const searchTerm = e.target.value.toLowerCase();
+          menuItems.forEach((item) => {
+            const text = (
+              item.querySelector("h4").textContent +
+              item.querySelector("p").textContent +
+              item.querySelector(".badge").textContent
+            ).toLowerCase();
+            if (text.includes(searchTerm)) {
+              item.style.display = "block";
+            } else {
+              item.style.display = "none";
+            }
+          });
+        });
+      });
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>

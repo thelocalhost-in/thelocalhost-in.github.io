@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>thelocalhost.in | Developer Hub for Open Source PoCs</title>
+
+    <meta
+      name="description"
+      content="The official developer hub for thelocalhost.in. Explore and contribute to our collection of free, open-source Proof-of-Concept (PoC) software projects. No sales, no fees, just code."
+    />
+    <meta
+      name="keywords"
+      content="thelocalhost.in, developer hub, open source, PoC, proof of concept, free software, GitHub, developer projects, code repository"
+    />
+    <meta name="author" content="thelocalhost.in Community" />
+
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+
+    <style>
+      /*
+        ------------------------------------------
+        1. GLOBAL STYLES & TYPOGRAPHY
+        ------------------------------------------
+        */
+      :root {
+        /* EXPANDED COLOR PALETTE from logo */
+        --dark-blue: #0a192f; /* Deep, almost black blue - Primary background/text */
+        --mid-blue: #172a45; /* Slightly lighter blue for contrast */
+        --accent-blue: #40c4ff; /* Bright sky blue - interactive elements, highlights */
+        --accent-teal: #00bfa5; /* Vibrant teal - secondary highlights, badges */
+        --light-grey: #ccd6f6; /* Light text color for dark backgrounds */
+        --mid-grey: #8892b0; /* Medium text color */
+        --white: #ffffff;
+
+        /* TYPOGRAPHY - Unique & Professional */
+        --font-display: "Space Mono", monospace; /* For bold headlines, techy feel */
+        --font-body: "Inter", sans-serif; /* Clean, modern, readable for body */
+        --font-code: "Fira Code", monospace; /* For code snippets, if needed */
+
+        scroll-behavior: smooth;
+      }
+
+      /* Google Fonts Import */
+      @import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;600&display=swap");
+
+      body {
+        font-family: var(--font-body);
+        color: var(--mid-grey);
+        margin: 0;
+        padding: 0;
+        line-height: 1.7; /* Increased line height for readability */
+        background-color: var(--dark-blue); /* Dark background for a dev hub */
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-display);
+        color: var(--light-grey);
+        margin-top: 0;
+        line-height: 1.2;
+      }
+
+      h2 {
+        font-size: 2.8em;
+        text-align: center;
+        margin-bottom: 1.5em;
+        position: relative;
+        color: var(--accent-blue); /* Section titles bright */
+      }
+
+      h2::after {
+        content: "";
+        display: block;
+        width: 80px; /* Wider underline */
+        height: 3px;
+        background: var(--accent-teal); /* Teal underline */
+        margin: 15px auto 0;
+        border-radius: 2px;
+      }
+
+      .container {
+        max-width: 1280px; /* Slightly wider container */
+        margin: 0 auto;
+        padding: 0 30px; /* More padding */
+      }
+
+      section {
+        padding: 100px 0; /* More vertical spacing */
+        min-height: 60vh;
+        position: relative; /* For unique dividers */
+      }
+
+      /* Unique Section Divider */
+      .section-divider {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          var(--mid-blue),
+          transparent
+        );
+        bottom: 0;
+        opacity: 0.3;
+      }
+
+      /*
+        ------------------------------------------
+        2. BUTTONS & CTA
+        ------------------------------------------
+        */
+      .cta-button {
+        display: inline-block;
+        padding: 14px 35px; /* Larger buttons */
+        background-color: var(--accent-blue);
+        color: var(--dark-blue); /* Dark text on bright button */
+        text-decoration: none;
+        font-family: var(--font-display);
+        font-weight: 700;
+        border-radius: 8px; /* More rounded */
+        transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0, 191, 165, 0.2); /* Subtle shadow */
+      }
+
+      .cta-button:hover {
+        background-color: var(--accent-teal); /* Teal on hover */
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 191, 165, 0.3);
+      }
+
+      /* Badge style for PoC projects */
+      .badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background-color: var(--secondary-accent); /* Teal badge */
+        color: var(--dark-blue);
+        padding: 6px 12px;
+        font-size: 0.85em;
+        font-weight: 700;
+        border-radius: 5px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /*
+        ------------------------------------------
+        3. HEADER & NAVIGATION (Sticky)
+        ------------------------------------------
+        */
+      header {
+        background: var(--dark-blue);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+      }
+
+      header .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 100px; /* INCREASED HEADER HEIGHT */
+      }
+
+      .logo img {
+        height: 180px; /* INCREASED LOGO SIZE */
+        width: auto;
+        filter: drop-shadow(0 0 15px rgba(64, 196, 255, 0.6))
+          /* Glowing effect */ drop-shadow(0 0 30px rgba(0, 191, 165, 0.4));
+        animation: pulseGlow 3s infinite alternate ease-in-out;
+      }
+
+      .logo img:hover {
+        transform: scale(1.05);
+      }
+
+      nav a {
+        color: var(--light-grey);
+        text-decoration: none;
+        margin-left: 30px;
+        font-weight: 500;
+        font-family: var(--font-body);
+        font-size: 1.1em; /* SLIGHTLY INCREASED NAV FONT SIZE */
+        transition: color 0.3s, transform 0.3s;
+      }
+
+      nav a:hover {
+        color: var(--accent-blue);
+        transform: translateY(-2px);
+      }
+
+      /*
+        ------------------------------------------
+        4. HERO SECTION
+        ------------------------------------------
+        */
+      #home {
+        background: linear-gradient(135deg, var(--dark-blue), var(--mid-blue)),
+          url("https://via.placeholder.com/1600x800/101828/ffffff?text=Abstract+Circuitry+Pattern")
+            no-repeat center center/cover;
+        color: var(--light-grey);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        height: 100vh;
+        padding-top: 100px; /* Offset for fixed header */
+        position: relative;
+        overflow: hidden; /* For subtle background effects */
+      }
+
+      /* Subtle background animation/effect */
+      #home::before {
+        content: "";
+        position: absolute;
+        top: -20%;
+        left: -20%;
+        width: 140%;
+        height: 140%;
+        background: radial-gradient(
+            circle at 10% 10%,
+            rgba(64, 196, 255, 0.1) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 90% 90%,
+            rgba(0, 191, 165, 0.1) 0%,
+            transparent 40%
+          );
+        animation: pulseBackground 20s infinite alternate ease-in-out;
+        z-index: 1;
+      }
+
+      @keyframes pulseBackground {
+        from {
+          transform: scale(1);
+          opacity: 1;
+        }
+        to {
+          transform: scale(1.05);
+          opacity: 0.8;
+        }
+      }
+
+      #home .content-wrapper {
+        /* To ensure text is above the pseudo-element */
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Hero Logo Styling */
+      .hero-logo-container {
+        margin-bottom: 10px;
+        animation: fadeInScale 1.5s ease-out forwards;
+      }
+
+      .hero-logo-container img {
+        width: 300px; /* Adjust size as needed */
+        height: auto;
+        filter: drop-shadow(0 0 15px rgba(64, 196, 255, 0.6))
+          /* Glowing effect */ drop-shadow(0 0 30px rgba(0, 191, 165, 0.4));
+        animation: pulseGlow 3s infinite alternate ease-in-out;
+      }
+
+      @keyframes fadeInScale {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes pulseGlow {
+        from {
+          filter: drop-shadow(0 0 10px rgba(64, 196, 255, 0.5));
+        }
+        to {
+          filter: drop-shadow(0 0 25px rgba(64, 196, 255, 0.8))
+            drop-shadow(0 0 15px rgba(0, 191, 165, 0.6));
+        }
+      }
+
+      #home h1 {
+        font-size: 4.5em; /* Larger, more impactful */
+        margin-bottom: 0.4em;
+        color: var(--white);
+        text-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        letter-spacing: -1px;
+      }
+
+      #home p {
+        font-size: 1.7em; /* Larger body text */
+        margin-bottom: 2.5em;
+        color: var(--light-grey);
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /*
+        ------------------------------------------
+        5. ABOUT SECTION
+        ------------------------------------------
+        */
+      #about {
+        background-color: var(--mid-blue); /* Darker background */
+        color: var(--light-grey);
+        text-align: center;
+      }
+      #about h2 {
+        color: var(--accent-teal);
+      } /* Teal title for about */
+
+      .value-props {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 60px; /* More spacing */
+        gap: 30px;
+        flex-wrap: wrap; /* Responsive wrapping */
+      }
+
+      .value-prop {
+        flex-basis: calc(33% - 40px); /* Adjusting for gap */
+        min-width: 280px;
+        padding: 35px 25px;
+        background: var(--dark-blue); /* Even darker background for cards */
+        border-left: 4px solid var(--accent-blue); /* Blue left border */
+        border-radius: 10px; /* More rounded */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); /* Deeper shadow */
+        text-align: left; /* Text alignment within card */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .value-prop:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+      }
+      .value-prop h3 {
+        color: var(--accent-teal); /* Teal for feature titles */
+        font-size: 1.6em;
+        margin-bottom: 10px;
+      }
+      .value-prop p {
+        font-size: 1.05em;
+        color: var(--mid-grey);
+      }
+
+      /*
+        ------------------------------------------
+        6. PROJECTS GRID
+        ------------------------------------------
+        */
+      #projects {
+        background-color: var(--dark-blue);
+        color: var(--light-grey);
+      }
+      #projects h2 {
+        color: var(--accent-blue);
+      }
+
+      .project-grid {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(320px, 1fr)
+        ); /* Slightly larger cards */
+        gap: 40px; /* More gap */
+        margin-top: 60px;
+      }
+
+      .project-card {
+        background: var(--mid-blue); /* Card background */
+        border-radius: 12px; /* More rounded */
+        overflow: hidden;
+        text-align: left; /* Text alignment inside card */
+        transition: box-shadow 0.3s, transform 0.3s;
+        position: relative;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(64, 196, 255, 0.1); /* Subtle border matching accent */
+      }
+
+      .project-card:hover {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        transform: translateY(-5px);
+      }
+
+      .project-card img {
+        width: 100%;
+        height: 220px; /* Taller images */
+        object-fit: cover;
+        filter: brightness(0.8); /* Slightly dimmed images */
+        transition: filter 0.3s ease;
+      }
+      .project-card:hover img {
+        filter: brightness(1); /* Brighten on hover */
+      }
+
+      .project-card-info {
+        padding: 25px; /* More padding */
+      }
+
+      .project-card h3 {
+        color: var(--accent-blue);
+        margin-top: 0;
+        font-size: 1.8em;
+        margin-bottom: 10px;
+      }
+      .project-card p {
+        color: var(--mid-grey);
+        font-size: 1.05em;
+        margin-bottom: 20px;
+      }
+      .project-card .cta-button {
+        background-color: var(--accent-teal); /* Teal buttons on cards */
+        color: var(--dark-blue);
+        padding: 10px 25px;
+        font-size: 0.9em;
+        border-radius: 6px;
+      }
+      .project-card .cta-button:hover {
+        background-color: var(--accent-blue); /* Blue on hover */
+      }
+
+      /*
+        ------------------------------------------
+        7. DETAILED PROJECT SECTIONS
+        ------------------------------------------
+        */
+      .project-detail-section {
+        background-color: var(--mid-blue);
+        color: var(--light-grey);
+        padding: 100px 0;
+        border-top: 1px solid var(--mid-blue);
+      }
+
+      .project-detail-section:nth-child(even) {
+        background-color: var(--dark-blue);
+      }
+      .project-detail-section h2 {
+        text-align: left;
+        margin-bottom: 1em;
+        color: var(--accent-teal);
+      }
+      .project-detail-section h2::after {
+        margin: 10px 0 0 0;
+      }
+
+      .project-detail-content {
+        display: flex;
+        align-items: flex-start; /* Align to top */
+        gap: 60px; /* More spacing */
+      }
+
+      .project-detail-content img {
+        width: 50%; /* Larger image */
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(0, 191, 165, 0.1);
+      }
+
+      .project-detail-text {
+        width: 50%;
+      }
+
+      .project-detail-text p {
+        font-size: 1.1em;
+        color: var(--mid-grey);
+        margin-bottom: 25px;
+      }
+
+      .project-detail-text h3 {
+        color: var(--accent-blue);
+        font-size: 1.8em;
+        margin-top: 30px;
+        margin-bottom: 15px;
+      }
+
+      .project-detail-text ul {
+        list-style: none; /* Remove default bullets */
+        padding-left: 0;
+        margin-bottom: 30px;
+      }
+      .project-detail-text ul li {
+        position: relative;
+        padding-left: 30px; /* Space for custom bullet */
+        margin-bottom: 10px;
+        color: var(--light-grey);
+        font-size: 1.05em;
+      }
+      .project-detail-text ul li::before {
+        content: "›"; /* Custom bullet point */
+        color: var(--accent-teal);
+        position: absolute;
+        left: 0;
+        font-size: 1.5em;
+        line-height: 1;
+        top: 0;
+      }
+
+      .project-detail-text .cta-button {
+        margin-right: 15px;
+        margin-bottom: 15px;
+      }
+      .project-detail-text .cta-button.secondary {
+        /* For "View Live Demo" */
+        background-color: var(--mid-blue);
+        color: var(--light-grey);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+      .project-detail-text .cta-button.secondary:hover {
+        background-color: #334a6d;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Swap order for even sections */
+      .project-detail-section:nth-child(even) .project-detail-content {
+        flex-direction: row-reverse;
+      }
+
+      /*
+        ------------------------------------------
+        8. TRUST / COMMUNITY SANDBOX
+        ------------------------------------------
+        */
+      #trust {
+        background-color: var(--dark-blue);
+        color: var(--light-grey);
+        text-align: center;
+      }
+      #trust h2 {
+        color: var(--accent-teal);
+      }
+
+      .community-stats {
+        display: flex;
+        justify-content: center;
+        gap: 60px;
+        margin-top: 60px;
+        flex-wrap: wrap;
+      }
+      .stat-item {
+        flex-basis: 25%;
+        min-width: 250px;
+        text-align: center;
+        background: var(--mid-blue);
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(0, 191, 165, 0.1);
+      }
+      .stat-item h3 {
+        font-size: 3em;
+        color: var(--accent-blue);
+        margin-bottom: 5px;
+      }
+      .stat-item p {
+        font-size: 1.2em;
+        color: var(--light-grey);
+      }
+
+      /*
+        ------------------------------------------
+        9. CONTACT & FOOTER
+        ------------------------------------------
+        */
+      #contact {
+        background-color: var(--mid-blue);
+        color: var(--light-grey);
+        text-align: center;
+      }
+      #contact h2 {
+        color: var(--accent-blue);
+      }
+
+      .contact-form {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 40px;
+        background: var(--dark-blue);
+        border-radius: 10px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(64, 196, 255, 0.1);
+      }
+
+      .contact-form input,
+      .contact-form textarea {
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid var(--mid-blue);
+        background-color: var(--dark-blue);
+        color: var(--light-grey);
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-family: var(--font-body);
+        font-size: 1em;
+        transition: border-color 0.3s, box-shadow 0.3s;
+      }
+      .contact-form input:focus,
+      .contact-form textarea:focus {
+        outline: none;
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 3px rgba(64, 196, 255, 0.2);
+      }
+      .contact-form textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      footer {
+        background: #060e18; /* Even darker footer */
+        color: var(--mid-grey);
+        padding: 30px 0;
+        text-align: center;
+        font-size: 0.9em;
+        border-top: 1px solid rgba(64, 196, 255, 0.1);
+      }
+      footer a {
+        color: var(--accent-teal);
+        text-decoration: none;
+        margin: 0 10px;
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      /*
+        ------------------------------------------
+        10. MEDIA QUERIES (Mobile Responsiveness)
+        ------------------------------------------
+        */
+      @media (max-width: 1024px) {
+        #home h1 {
+          font-size: 3.5em;
+        }
+        #home p {
+          font-size: 1.5em;
+        }
+        .value-prop,
+        .stat-item {
+          flex-basis: calc(50% - 30px);
+        }
+        .project-detail-content {
+          flex-direction: column;
+          align-items: center;
+        }
+        .project-detail-content img,
+        .project-detail-text {
+          width: 100%;
+          text-align: center;
+        }
+        .project-detail-section:nth-child(even) .project-detail-content {
+          flex-direction: column;
+        }
+        .project-detail-section h2 {
+          text-align: center;
+        }
+        .project-detail-section h2::after {
+          margin: 15px auto 0;
+        }
+        .project-detail-text ul {
+          padding-left: 20px;
+        } /* Re-add padding for smaller screens */
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2.8em;
+        }
+        h2 {
+          font-size: 2.2em;
+        }
+        section {
+          padding: 80px 0;
+        }
+
+        header .container {
+          flex-direction: column;
+          height: auto;
+          padding: 15px 20px;
+        }
+        nav {
+          margin-top: 15px;
+          padding-bottom: 10px;
+        }
+        nav a {
+          margin: 0 12px;
+          display: inline-block;
+          font-size: 0.95em;
+        }
+
+        #home {
+          height: 80vh;
+          padding-top: 100px;
+        }
+        #home h1 {
+          font-size: 2.8em;
+        }
+        #home p {
+          font-size: 1.2em;
+        }
+
+        .value-prop,
+        .stat-item {
+          flex-basis: 100%;
+          min-width: unset;
+        }
+        .value-prop {
+          text-align: center;
+        }
+        .value-prop h3 {
+          text-align: center;
+        }
+        .project-detail-text ul li {
+          padding-left: 25px;
+          text-align: left;
+        } /* Ensure list items are left-aligned */
+
+        .contact-form {
+          padding: 30px 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <a href="#home" class="logo">
+          <img
+            src="resources/logo_transparent.png"
+            alt="thelocalhost.in Logo"
+          />
+        </a>
+        <nav>
+          <a href="#home">Home</a>
+          <a href="#about">What is PoC</a>
+          <a href="#projects">PoC Projects</a>
+          <a href="#contact">Contribute</a>
+        </nav>
+      </div>
+    </header>
+
+    <section id="home">
+      <div class="container content-wrapper">
+        <!-- <div class="hero-logo-container">
+          <img
+            src="resources/logo_transparent.png"
+            alt="thelocalhost.in Circuit Logo"
+          />
+        </div> -->
+        <h1>The Developer Hub: Pure PoC. Pure Open Source.</h1>
+        <p>
+          A non-commercial collection of experimental, free, and open-source
+          Proof-of-Concept projects built by the community.
+        </p>
+        <a href="#projects" class="cta-button">Explore Projects & Code</a>
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <section id="about" class="container">
+      <h2>What is a Proof-of-Concept Hub?</h2>
+      <p
+        style="
+          max-width: 800px;
+          margin: 0 auto 50px;
+          text-align: center;
+          color: var(--mid-grey);
+        "
+      >
+        This repository, **thelocalhost.in**, is dedicated to showcasing
+        foundational ideas, experimental libraries, and early-stage software
+        development concepts (PoCs). Everything here is **free, open-source, and
+        available to fork, use, and modify** without restriction. It is a
+        sandbox for innovation, not a commercial storefront.
+      </p>
+
+      <div class="value-props">
+        <div class="value-prop">
+          <h3 style="color: var(--accent-teal)">🧪 Experiment</h3>
+          <p>
+            Test boundaries and explore new languages, frameworks, and APIs.
+            Your ideas find a home here.
+          </p>
+        </div>
+        <div class="value-prop">
+          <h3 style="color: var(--accent-teal)">🌐 Open Source</h3>
+          <p>
+            Every line of code is transparent and accessible. Use it, learn from
+            it, improve it—no strings attached.
+          </p>
+        </div>
+        <div class="value-prop">
+          <h3 style="color: var(--accent-teal)">🤝 Contribute</h3>
+          <p>
+            Help shape the future of these projects. Fork a repository, submit a
+            PR, or start a discussion.
+          </p>
+        </div>
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <section id="projects" class="container">
+      <h2>Our Latest Proof-of-Concept Projects</h2>
+      <p
+        style="text-align: center; margin-bottom: 40px; color: var(--mid-grey)"
+      >
+        Click any card to jump to the project details, codebase, and demo links.
+      </p>
+      <div class="project-grid">
+        <div class="project-card">
+          <span class="badge">PoC</span>
+          <img
+            src="https://via.placeholder.com/600x400/101828/ffffff?text=CoreLib+Code+Snippets"
+            alt="CoreLib PoC"
+          />
+          <div class="project-card-info">
+            <h3>PoC: CoreLib</h3>
+            <p>
+              A minimal, highly performant cross-platform logging utility
+              written in Rust, exploring advanced macros.
+            </p>
+            <a href="#project-1" class="cta-button">View Project</a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <span class="badge">PoC</span>
+          <img
+            src="https://via.placeholder.com/600x400/101828/ffffff?text=Hyper+Router+Emulator"
+            alt="Router PoC"
+          />
+          <div class="project-card-info">
+            <h3>PoC: Router Emulator</h3>
+            <p>
+              A network traffic simulator testing new routing algorithms,
+              implemented in Python and Go.
+            </p>
+            <a href="#project-2" class="cta-button">View Project</a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <span class="badge">PoC</span>
+          <img
+            src="https://via.placeholder.com/600x400/101828/ffffff?text=Synapse+Starter+UI"
+            alt="Cloud PoC"
+          />
+          <div class="project-card-info">
+            <h3>PoC: Synapse Starter</h3>
+            <p>
+              A barebones serverless architecture starter for cloud functions,
+              focusing on quick deployments.
+            </p>
+            <a href="#project-3" class="cta-button">View Project</a>
+          </div>
+        </div>
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <!-- <section id="project-1" class="project-detail-section container">
+      <h2>PoC: CoreLib - Minimal Cross-Platform Logging</h2>
+      <div class="project-detail-content">
+        <div class="project-detail-text">
+          <p>
+            **CoreLib** is an experimental library focusing on minimal memory
+            footprint and zero-overhead performance for logging operations. This
+            Proof-of-Concept explores Rust's advanced macro capabilities for
+            compile-time code generation, aiming for extreme efficiency without
+            compromising readability.
+          </p>
+          <h3 style="color: var(--accent-blue)">Project Focus:</h3>
+          <ul>
+            <li>**Language:** Rust</li>
+            <li>
+              **Goal:** Achieve logging performance competitive with C/C++ in a
+              safe language.
+            </li>
+            <li>
+              **Contribution:** We're looking for help with comprehensive
+              documentation, benchmark testing across various platforms, and
+              exploring integration patterns with other Rust ecosystems.
+            </li>
+          </ul>
+          <a
+            href="https://github.com/thelocalhost-org/corelib-poc"
+            target="_blank"
+            class="cta-button"
+            >Clone Repository</a
+          >
+          <a
+            href="https://corelib-poc.thelocalhost.in/demo"
+            target="_blank"
+            class="cta-button secondary"
+            >View Live Demo (If Available)</a
+          >
+        </div>
+        <img
+          src="https://via.placeholder.com/800x600/172A45/ffffff?text=CoreLib+Codebase+Mockup"
+          alt="CoreLib Code Snippet"
+        />
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <section id="project-2" class="project-detail-section container">
+      <h2>PoC: Router Emulator - Network Algorithm Testing</h2>
+      <div class="project-detail-content">
+        <div class="project-detail-text">
+          <p>
+            This project simulates large-scale network traffic to test novel
+            routing algorithms, focusing on minimizing packet loss in congested
+            environments. The PoC compares performance between Python and Go
+            implementations, providing a visual dashboard for real-time
+            analysis.
+          </p>
+          <h3 style="color: var(--accent-blue)">Project Focus:</h3>
+          <ul>
+            <li>**Language:** Python / Go</li>
+            <li>
+              **Goal:** Visualize algorithm efficiency and bottlenecks under
+              high network load scenarios.
+            </li>
+            <li>
+              **Contribution:** Seeking developers for adding new algorithm
+              comparisons, improving the simulation accuracy, and expanding the
+              visualization toolkit.
+            </li>
+          </ul>
+          <a
+            href="https://github.com/thelocalhost-org/router-emulator-poc"
+            target="_blank"
+            class="cta-button"
+            >Clone Repository</a
+          >
+          <a
+            href="https://router-emulator-poc.thelocalhost.in/demo"
+            target="_blank"
+            class="cta-button secondary"
+            >View Live Demo (If Available)</a
+          >
+        </div>
+        <img
+          src="https://via.placeholder.com/800x600/172A45/ffffff?text=Router+Emulator+Diagram"
+          alt="Router Emulator Diagram"
+        />
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <section id="project-3" class="project-detail-section container">
+      <h2>PoC: Synapse Starter - Serverless Starter Kit</h2>
+      <div class="project-detail-content">
+        <div class="project-detail-text">
+          <p>
+            **Synapse Starter** is a template for rapid serverless function
+            deployment, showing how to connect a simple frontend to a
+            cloud-based API gateway. It prioritizes ease of setup and minimal
+            dependencies, making it an ideal learning platform for serverless
+            architecture.
+          </p>
+          <h3 style="color: var(--accent-blue)">Project Focus:</h3>
+          <ul>
+            <li>**Language:** JavaScript (Node.js)</li>
+            <li>
+              **Goal:** Provide the quickest path to a running serverless PoC
+              for educational purposes.
+            </li>
+            <li>
+              **Contribution:** Seeking UI/UX feedback for the included
+              boilerplate frontend, and alternative framework implementations
+              (e.g., Python, Go functions).
+            </li>
+          </ul>
+          <a
+            href="https://github.com/thelocalhost-org/synapse-starter-poc"
+            target="_blank"
+            class="cta-button"
+            >Clone Repository</a
+          >
+          <a
+            href="https://synapse-starter-poc.thelocalhost.in/demo"
+            target="_blank"
+            class="cta-button secondary"
+            >View Live Demo (If Available)</a
+          >
+        </div>
+        <img
+          src="https://via.placeholder.com/800x600/172A45/ffffff?text=Serverless+Diagram"
+          alt="Serverless Diagram"
+        />
+      </div>
+      <div class="section-divider"></div>
+    </section> -->
+
+    <section id="trust" class="container">
+      <h2>The Community Sandbox</h2>
+      <p style="color: var(--mid-grey)">
+        This hub exists because of the developers who contribute and explore.
+        Join us!
+      </p>
+
+      <div class="community-stats">
+        <div class="stat-item">
+          <h3>10+</h3>
+          <p>Active PoC Projects</p>
+        </div>
+        <div class="stat-item">
+          <h3>50+</h3>
+          <p>Community Contributors</p>
+        </div>
+        <div class="stat-item">
+          <h3>400+</h3>
+          <p>Total Forks & Clones</p>
+        </div>
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <section id="contact">
+      <div class="container">
+        <h2>Start Contributing Today</h2>
+        <p style="color: var(--mid-grey)">
+          Have an idea for a PoC? Found a bug? Let us know how you want to get
+          involved.
+        </p>
+        <div class="contact-form">
+          <form action="#" method="POST">
+            <input
+              type="text"
+              name="name"
+              placeholder="Your GitHub Username (Optional)"
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Your Email (Optional)"
+            />
+            <textarea
+              name="message"
+              rows="5"
+              placeholder="Your PoC Idea, Bug Report, or Question"
+              required
+            ></textarea>
+            <button type="submit" class="cta-button">
+              Submit Idea/Inquiry
+            </button>
+          </form>
+        </div>
+        <p style="margin-top: 30px; color: var(--mid-grey)">
+          **GitHub:**
+          <a
+            href="https://github.com/thelocalhost-org"
+            style="color: var(--accent-teal)"
+            >[Link to your Main Org/Profile]</a
+          >
+          | **Community Forum:**
+          <a href="#" style="color: var(--accent-teal)"
+            >[Link to your Discord/Slack]</a
+          >
+        </p>
+      </div>
+      <div class="section-divider"></div>
+    </section>
+
+    <footer>
+      <div class="container">
+        &copy; 2025 thelocalhost.in Developer Hub. Built by the community. |
+        <a href="#">Code of Conduct</a> |
+        <a href="#">License (MIT/Apache 2.0)</a>
+      </div>
+    </footer>
+  </body>
+</html>
