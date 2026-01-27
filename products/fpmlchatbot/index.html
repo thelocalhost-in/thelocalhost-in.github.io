@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FPML Tag Explorer Analysis</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Set default font to Inter -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f7f9fb; /* Very light, soft background */
+      }
+      /* Custom scrollbar styling for the chat area */
+      .chat-area::-webkit-scrollbar {
+        width: 8px;
+      }
+      .chat-area::-webkit-scrollbar-track {
+        background: #eef1f5;
+      }
+      .chat-area::-webkit-scrollbar-thumb {
+        background-color: #b0c0d1;
+        border-radius: 20px;
+        border: 2px solid #eef1f5;
+      }
+      /* Style for the user query bubble (subtle shadow) */
+      .user-query-bubble {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      }
+      /* Typing animation cursor (dark blue on light background) */
+      .typing-cursor {
+        display: inline-block;
+        width: 4px;
+        height: 1.1em;
+        background-color: #4f46e5; /* Indigo cursor */
+        margin-left: 1px;
+        animation: blink 1s step-end infinite;
+      }
+      @keyframes blink {
+        from,
+        to {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex flex-col min-h-screen">
+    <div
+      id="app"
+      class="flex flex-col flex-1 max-w-4xl w-full mx-auto bg-white shadow-2xl shadow-gray-300/50 lg:rounded-xl overflow-hidden"
+    >
+      <!-- Header (Application Bar) -->
+      <header
+        class="bg-white text-gray-800 p-5 shadow-lg flex items-center justify-between sticky top-0 z-10 border-b border-gray-200"
+      >
+        <div class="flex items-center space-x-3">
+          <svg
+            class="w-7 h-7 text-indigo-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+            ></path>
+          </svg>
+          <h1
+            class="text-xl sm:text-2xl font-bold tracking-tight text-gray-800"
+          >
+            FPML Schema Analyzer
+          </h1>
+        </div>
+        <div
+          class="text-sm font-medium text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200 hidden sm:block"
+        >
+          UX/UI Focused
+        </div>
+      </header>
+
+      <!-- Analysis Area (Chat Area) -->
+      <main
+        id="chat-area"
+        class="flex-1 p-6 space-y-8 overflow-y-auto chat-area bg-gray-50"
+      >
+        <!-- Initial welcome message (Bot's response style) -->
+        <div class="flex flex-col items-start">
+          <div
+            class="bg-white text-gray-700 p-4 rounded-xl rounded-tl-none max-w-full sm:max-w-xl shadow-lg border-l-4 border-indigo-400"
+          >
+            <p class="font-semibold mb-1 text-indigo-600">
+              Schema Processor Ready
+            </p>
+            <p class="text-sm leading-relaxed">
+              This tool provides high-level, structured documentation for core
+              FPML elements. Please select a tag from the input below to
+              retrieve its definitions, constraints, and documentation snippet.
+            </p>
+          </div>
+        </div>
+
+        <!-- Analysis results will be dynamically inserted here -->
+        <div id="messages-container" class="space-y-8"></div>
+      </main>
+
+      <!-- Input Control Panel (Fixed at bottom) -->
+      <footer
+        class="bg-white p-4 border-t border-gray-200 sticky bottom-0 z-10"
+      >
+        <div class="flex space-x-3 items-center">
+          <!-- Label for better UX -->
+          <label
+            for="tag-select"
+            class="text-gray-600 font-medium text-sm hidden sm:block"
+            >FpML Tag:</label
+          >
+
+          <!-- Dropdown for Tag Selection -->
+          <select
+            id="tag-select"
+            class="flex-1 p-3 bg-white border border-gray-300 text-gray-800 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 text-sm sm:text-base cursor-pointer transition duration-200 ease-in-out shadow-sm hover:border-gray-400"
+            aria-label="Select FPML Tag"
+          >
+            <option value="" disabled selected>
+              Select an FPML Tag for Structured Analysis...
+            </option>
+            <option value="tradeDate">tradeDate</option>
+            <option value="paymentAmount">paymentAmount</option>
+            <option value="averageDailyTradingVolume">
+              averageDailyTradingVolume
+            </option>
+            <option value="notionalAmount">notionalAmount</option>
+            <option value="resetFrequency">resetFrequency</option>
+          </select>
+
+          <!-- Send Button -->
+          <button
+            id="send-btn"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 ease-in-out shadow-lg shadow-indigo-500/50 disabled:opacity-40 disabled:shadow-none tracking-wider"
+            onclick="sendMessage()"
+            disabled
+          >
+            ANALYZE
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- JavaScript Logic (Typing effect preserved) -->
+    <script>
+      // Use the initial app ID provided by the environment, or a default for local testing
+      const appId =
+        typeof __app_id !== "undefined" ? __app_id : "fpml-explorer-default";
+      const apiKey = ""; // API key is provided by the canvas environment
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+      // --- MOCK FPML DATA ---
+      const MOCK_FPML_DATA = {
+        averageDailyTradingVolume: {
+          tagName: "averageDailyTradingVolume",
+          dataType: "AverageDailyTradingVolumeLimit",
+          required: "Optional (Min: 0)",
+          occurrences: "1",
+          explanation:
+            "Defines the average amount of individual securities traded in a day or over a specified period of time for the purpose of a trade agreement, often used for regulatory checks."
+        },
+        tradeDate: {
+          tagName: "tradeDate",
+          dataType: "date",
+          required: "Mandatory (Min: 1)",
+          occurrences: "1",
+          explanation:
+            "The date that the parties entered into the transaction. This is a critical, legally binding field for all trade confirmations (FpML: TradeConfirmation.xsd)."
+        },
+        paymentAmount: {
+          tagName: "paymentAmount",
+          dataType: "Money",
+          required: "Mandatory (Min: 1)",
+          occurrences: "Unbounded (*)",
+          explanation:
+            "The actual amount of the payment, comprising a currency code and the monetary value. Used extensively in cash flow representations, allowing for multiple payment legs."
+        },
+        notionalAmount: {
+          tagName: "notionalAmount",
+          dataType: "PositiveMoney",
+          required: "Optional (Min: 0)",
+          occurrences: "1",
+          explanation:
+            "The principal amount used to calculate the payments of an interest rate swap or other derivatives. This amount is a reference point and is typically not exchanged."
+        },
+        resetFrequency: {
+          tagName: "resetFrequency",
+          dataType: "Period",
+          required: "Mandatory (Min: 1)",
+          occurrences: "1",
+          explanation:
+            "Specifies how often the floating rate index is observed and the calculation of the floating rate payment is reset. E.g., '3M' for three months or '6L' for semi-annually."
+        }
+      };
+
+      // --- CHAT STATE AND UTILITIES ---
+      const messagesContainer = document.getElementById("messages-container");
+      const tagSelect = document.getElementById("tag-select");
+      const chatArea = document.getElementById("chat-area");
+      const sendBtn = document.getElementById("send-btn");
+      let isTyping = false;
+
+      // Enable button when a tag is selected
+      tagSelect.addEventListener("change", () => {
+        sendBtn.disabled = isTyping || !tagSelect.value;
+      });
+
+      /**
+       * Creates the structural container for the bot's analysis card.
+       * @param {string} tagName - The queried FPML tag name.
+       * @returns {string} The ID of the content element for typing.
+       */
+      function createResponseBubbleContainer(tagName) {
+        const contentId = `content-${Date.now()}`;
+
+        const html = `
+                <div class="flex flex-col items-start w-full" id="response-container-${contentId}">
+                    <div class="bg-white border border-gray-200 p-5 rounded-xl rounded-tl-none max-w-full lg:max-w-2xl shadow-xl shadow-indigo-100/50">
+                        <div class="font-bold text-2xl mb-4 text-gray-800 flex items-center space-x-2 border-b pb-2 border-gray-100">
+                            <span class="text-indigo-600 font-mono tracking-tight">&lt;${tagName}/&gt;</span>
+                            <span class="text-sm font-medium text-gray-400">Analysis Result</span>
+                        </div>
+                        <div id="${contentId}" class="space-y-4 text-sm sm:text-base text-gray-700">
+                            <!-- Typed content will go here -->
+                            <span class="typing-cursor"></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        messagesContainer.innerHTML += html;
+        return contentId;
+      }
+
+      /**
+       * Creates the user's query bubble (now a structured query block).
+       * @param {string} tag - The queried FPML tag name.
+       * @returns {string} The HTML string for the user's bubble.
+       */
+      function createUserBubble(tag) {
+        return `
+                <div class="flex justify-end w-full">
+                    <div class="bg-indigo-50 border border-indigo-200 text-gray-700 p-3 rounded-xl rounded-br-none max-w-xs sm:max-w-md user-query-bubble text-sm font-medium">
+                        Requesting analysis for tag: <span class="font-mono bg-indigo-200 text-indigo-800 p-1 rounded-md text-base font-semibold">${tag}</span>
+                    </div>
+                </div>
+            `;
+      }
+
+      /**
+       * Scrolls the chat window to the bottom.
+       */
+      function scrollToBottom() {
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }
+
+      /**
+       * Generates the structured content string that will be typed out.
+       * @param {Object} data - The FPML tag description data.
+       * @returns {string} The HTML string with content for typing.
+       */
+      function generateTypedContent(data) {
+        return `
+                <!-- Schema Details -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-y-4 gap-x-6 pb-4 border-b border-gray-100">
+                    <div class="col-span-2 sm:col-span-1">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Data Type</div>
+                        <div class="font-bold text-indigo-700 text-lg">${data.dataType}</div>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Required</div>
+                        <div class="font-semibold text-gray-900">${data.required}</div>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Max Occurrences</div>
+                        <div class="font-semibold text-gray-900">${data.occurrences}</div>
+                    </div>
+                </div>
+
+                <!-- Explanation/Snippet -->
+                <div class="pt-2">
+                    <p class="font-semibold text-gray-800 mb-2 border-b border-gray-100 pb-1">Documentation Snippet:</p>
+                    <p class="italic text-gray-600 leading-relaxed">${data.explanation}</p>
+                </div>
+            `;
+      }
+
+      /**
+       * Implements the typing effect for the bot's response.
+       * @param {string} targetElementId - The ID of the element to type into.
+       * @param {string} content - The final HTML content to be displayed.
+       */
+      async function startTypingEffect(targetElementId, content) {
+        isTyping = true;
+        sendBtn.disabled = true;
+
+        const targetElement = document.getElementById(targetElementId);
+        const cursor = targetElement.querySelector(".typing-cursor");
+
+        // 1. Convert the HTML content to plain text + tags for sequential typing
+        let textQueue = [];
+        let tempDiv = document.createElement("div");
+        tempDiv.innerHTML = content;
+
+        // Simple serialization of the complex structure
+        function serializeNode(node) {
+          if (node.nodeType === 3) {
+            // Text node
+            return [{ type: "text", content: node.textContent }];
+          }
+          if (node.nodeType === 1) {
+            // Element node
+            const tagName = node.tagName.toLowerCase();
+            // Custom logic to handle classes and attributes
+            let attributes = "";
+            Array.from(node.attributes).forEach((attr) => {
+              // Special handling for the grid structure classes which must be on the element
+              if (attr.name === "class") {
+                attributes += ` class="${attr.value}"`;
+              } else {
+                attributes += ` ${attr.name}="${attr.value}"`;
+              }
+            });
+
+            const openTag = `<${tagName}${attributes}>`;
+
+            let items = [{ type: "tag_open", content: openTag }];
+
+            Array.from(node.childNodes).forEach((child) => {
+              items = items.concat(serializeNode(child));
+            });
+
+            items.push({ type: "tag_close", content: `</${tagName}>` });
+            return items;
+          }
+          return [];
+        }
+
+        Array.from(tempDiv.childNodes).forEach((node) => {
+          textQueue = textQueue.concat(serializeNode(node));
+        });
+
+        // 2. Typing loop
+        targetElement.innerHTML = ""; // Clear initial content
+
+        for (const item of textQueue) {
+          if (item.type === "tag_open" || item.type === "tag_close") {
+            // Instantly insert tags to maintain structure
+            targetElement.insertAdjacentHTML("beforeend", item.content);
+          } else if (item.type === "text" && item.content.trim().length > 0) {
+            const text = item.content;
+            for (let i = 0; i < text.length; i++) {
+              // Remove the cursor before adding the new character
+              targetElement.innerHTML = targetElement.innerHTML.replace(
+                '<span class="typing-cursor"></span>',
+                ""
+              );
+              targetElement.innerHTML += text[i];
+              // Add the cursor back
+              targetElement.innerHTML += '<span class="typing-cursor"></span>';
+              scrollToBottom();
+              await new Promise((resolve) => setTimeout(resolve, 25)); // Typing speed (25ms per char)
+            }
+          }
+        }
+
+        // 3. Cleanup
+        const finalCursor = targetElement.querySelector(".typing-cursor");
+        if (finalCursor) {
+          finalCursor.remove();
+        }
+        isTyping = false;
+        // Re-enable send button if a tag is currently selected
+        if (tagSelect.value) sendBtn.disabled = false;
+      }
+
+      /**
+       * Simulates an asynchronous API call to fetch the tag description (using mock data).
+       * @param {string} tag - The FPML tag to look up.
+       * @returns {Promise<Object>} A promise that resolves with the tag data.
+       */
+      function fetchTagDescription(tag) {
+        return new Promise((resolve) => {
+          // Simulate network latency
+          setTimeout(() => {
+            const data = MOCK_FPML_DATA[tag];
+            if (data) {
+              resolve(data);
+            } else {
+              // Always resolve to mock a data-less response structure
+              resolve({
+                error:
+                  "Tag not found in the FpML definition file (simulated error)."
+              });
+            }
+          }, 500); // 0.5 second delay
+        });
+      }
+
+      /**
+       * Main function to handle sending a message (query).
+       */
+      async function sendMessage() {
+        if (isTyping) return;
+
+        const selectedTag = tagSelect.value;
+
+        if (!selectedTag) {
+          tagSelect.classList.add("border-red-500", "ring-red-500");
+          setTimeout(
+            () => tagSelect.classList.remove("border-red-500", "ring-red-500"),
+            1500
+          );
+          return;
+        }
+
+        isTyping = true;
+        sendBtn.disabled = true;
+
+        // 1. Display User's Query
+        const userBubble = createUserBubble(selectedTag);
+        messagesContainer.innerHTML += userBubble;
+        scrollToBottom();
+
+        // 2. Create Response Container and get its content ID
+        const contentId = createResponseBubbleContainer(selectedTag);
+        scrollToBottom();
+
+        // 3. Fetch Data (Simulated)
+        try {
+          const data = await fetchTagDescription(selectedTag);
+
+          if (data.error) {
+            // Handle simulated error response
+            const responseContainer = document
+              .getElementById(contentId)
+              .closest('[id^="response-container"]');
+            if (responseContainer) responseContainer.remove();
+
+            const errorHtml = `<div class="flex flex-col items-start w-full">
+                                            <div class="bg-red-50 border border-red-300 text-red-700 p-4 rounded-xl rounded-tl-none max-w-full sm:max-w-md shadow-md text-sm">
+                                                <p class="font-bold mb-1">SCHEMA LOOKUP FAILURE:</p>
+                                                <p>${data.error}</p>
+                                            </div>
+                                        </div>`;
+            messagesContainer.innerHTML += errorHtml;
+          } else {
+            const typedContentHtml = generateTypedContent(data);
+            // 4. Start Typing Effect
+            await startTypingEffect(contentId, typedContentHtml);
+          }
+        } catch (error) {
+          // Handle actual fetch/network errors
+          const responseContainer = document
+            .getElementById(contentId)
+            .closest('[id^="response-container"]');
+          if (responseContainer) responseContainer.remove();
+
+          const errorHtml = `<div class="flex flex-col items-start w-full">
+                                    <div class="bg-red-50 border border-red-300 text-red-700 p-4 rounded-xl rounded-tl-none max-w-full sm:max-w-md shadow-md text-sm">
+                                        <p class="font-bold mb-1">NETWORK ERROR:</p>
+                                        <p>Failed to connect to the analysis service.</p>
+                                    </div>
+                                </div>`;
+          messagesContainer.innerHTML += errorHtml;
+        } finally {
+          isTyping = false;
+          // Re-enable send button if a tag is currently selected
+          if (tagSelect.value) sendBtn.disabled = false;
+          scrollToBottom();
+        }
+      }
+
+      // --- Event Listeners ---
+      window.addEventListener("load", () => {
+        scrollToBottom();
+        // Set initial state of the button
+        sendBtn.disabled = !tagSelect.value;
+
+        // Listener for Enter key
+        tagSelect.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !sendBtn.disabled) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
