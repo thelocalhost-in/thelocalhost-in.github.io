@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>Devlok AR v2 — Sacred Beings</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;1,300&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#C9A84C;--gold2:#F0D07A;--saffron:#FF6B1A;--deep:#07040a;--cream:#F5EDD8}
+body{font-family:'Crimson Pro',Georgia,serif;background:var(--deep);color:var(--cream);overflow:hidden;height:100vh;width:100vw;touch-action:none}
+
+/* PARTICLES BG */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 20%,#1a0e05,#07040a 70%);transition:opacity 1s}
+.om{font-size:90px;line-height:1;margin-bottom:8px;animation:omglow 3s ease-in-out infinite}
+@keyframes omglow{0%,100%{filter:drop-shadow(0 0 20px rgba(201,168,76,.5));color:#C9A84C}50%{filter:drop-shadow(0 0 60px rgba(255,107,26,.8)) drop-shadow(0 0 120px rgba(201,168,76,.4));color:#F0D07A}}
+#splash h1{font-family:'Cinzel',serif;font-size:26px;font-weight:900;letter-spacing:8px;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.tagline{font-size:13px;font-style:italic;color:rgba(245,237,216,.45);letter-spacing:3px;margin-bottom:32px}
+.divider{width:140px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:12px auto 24px}
+
+/* CREATURE CARDS */
+.cards{display:flex;gap:10px;margin-bottom:28px;padding:0 12px}
+.card{background:linear-gradient(145deg,rgba(201,168,76,.06),rgba(201,168,76,.01));border:1px solid rgba(201,168,76,.2);border-radius:16px;padding:14px 12px 12px;cursor:pointer;transition:all .25s;width:100px;text-align:center;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,.12),transparent 70%);opacity:0;transition:opacity .3s}
+.card:hover::before,.card.sel::before{opacity:1}
+.card.sel{border-color:var(--gold);box-shadow:0 0 20px rgba(201,168,76,.2),inset 0 0 20px rgba(201,168,76,.04)}
+.card-icon{font-size:36px;margin-bottom:6px;display:block}
+.card-name{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+.card-desc{font-size:10px;color:rgba(245,237,216,.4);font-style:italic;line-height:1.3}
+
+/* START BTN */
+.go{font-family:'Cinzel',serif;font-size:12px;letter-spacing:5px;text-transform:uppercase;background:linear-gradient(135deg,#C9A84C,#FF6B1A);border:none;border-radius:40px;padding:14px 44px;color:#07040a;font-weight:700;cursor:pointer;box-shadow:0 4px 30px rgba(201,168,76,.35);transition:all .25s}
+.go:hover{transform:translateY(-2px);box-shadow:0 8px 50px rgba(201,168,76,.55)}
+
+/* LOADING */
+#loading{position:fixed;inset:0;z-index:200;background:var(--deep);display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.loader-ring{width:70px;height:70px;position:relative}
+.loader-ring::before,.loader-ring::after{content:'';position:absolute;border-radius:50%;border:2px solid transparent}
+.loader-ring::before{inset:0;border-top-color:var(--gold);animation:spin 1.2s linear infinite}
+.loader-ring::after{inset:8px;border-top-color:var(--saffron);animation:spin .8s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-txt{font-family:'Cinzel',serif;font-size:11px;letter-spacing:4px;color:rgba(201,168,76,.6);text-transform:uppercase}
+
+/* PERM SCREEN */
+#perm{position:fixed;inset:0;z-index:150;background:var(--deep);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:40px;text-align:center}
+#perm .big{font-size:60px}
+#perm h2{font-family:'Cinzel',serif;font-size:20px;color:var(--gold)}
+#perm p{font-size:14px;color:rgba(245,237,216,.55);line-height:1.6;max-width:280px}
+.perm-row{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px}
+.pbtn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;border-radius:40px;padding:12px 28px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.pbtn.primary{background:linear-gradient(135deg,var(--gold),var(--saffron));border:none;color:#07040a;font-weight:700}
+.pbtn.ghost{background:transparent;border:1px solid rgba(201,168,76,.3);color:rgba(201,168,76,.5)}
+
+/* AR CONTAINER */
+#ar-wrap{position:fixed;inset:0;display:none}
+video#feed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+canvas#tc{position:absolute;inset:0;z-index:1;width:100%!important;height:100%!important}
+
+/* HUD */
+#hud{position:fixed;inset:0;z-index:50;pointer-events:none;display:none}
+.corner{position:absolute;width:24px;height:24px;border-color:rgba(201,168,76,.45);border-style:solid;border-width:0}
+.tl{top:14px;left:14px;border-top-width:2px;border-left-width:2px;border-radius:3px 0 0 0}
+.tr{top:14px;right:14px;border-top-width:2px;border-right-width:2px;border-radius:0 3px 0 0}
+.bl{bottom:14px;left:14px;border-bottom-width:2px;border-left-width:2px;border-radius:0 0 0 3px}
+.br{bottom:14px;right:14px;border-bottom-width:2px;border-right-width:2px;border-radius:0 0 3px 0}
+.hud-top{position:absolute;top:0;left:0;right:0;padding:20px;display:flex;justify-content:space-between;align-items:flex-start}
+.hud-name{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold);text-shadow:0 2px 20px rgba(201,168,76,.5)}
+.hud-sub{font-size:11px;color:rgba(245,237,216,.4);font-style:italic;letter-spacing:1px}
+.hud-controls{display:flex;gap:8px;pointer-events:all}
+.hbtn{background:rgba(7,4,10,.55);border:1px solid rgba(201,168,76,.35);border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;backdrop-filter:blur(10px);transition:all .2s}
+.hbtn:hover{border-color:var(--gold);background:rgba(201,168,76,.1)}
+.hud-bottom{position:absolute;bottom:0;left:0;right:0;padding:0 24px 36px;text-align:center}
+.mantra{font-family:'Cinzel',serif;font-size:15px;color:rgba(201,168,76,.85);letter-spacing:3px;text-shadow:0 0 20px rgba(201,168,76,.4),0 2px 8px rgba(0,0,0,.8);animation:mbreath 6s ease-in-out infinite}
+@keyframes mbreath{0%,100%{opacity:.5;transform:translateY(2px)}50%{opacity:1;transform:translateY(0)}}
+.hint{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:rgba(245,237,216,.2);margin-top:8px}
+.cross{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:28px;height:28px}
+.cross::before{content:'';position:absolute;width:1px;height:100%;left:50%;background:rgba(201,168,76,.4)}
+.cross::after{content:'';position:absolute;height:1px;width:100%;top:50%;background:rgba(201,168,76,.4)}
+.dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:4px;border-radius:50%;background:rgba(201,168,76,.7)}
+
+/* LORE POPUP */
+#lore-popup{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:60;background:rgba(7,4,10,.85);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:14px 20px;max-width:300px;text-align:center;backdrop-filter:blur(20px);display:none;animation:popfade .5s ease}
+@keyframes popfade{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+#lore-popup .lore-name{font-family:'Cinzel',serif;font-size:13px;color:var(--gold);margin-bottom:4px}
+#lore-popup .lore-body{font-size:12px;color:rgba(245,237,216,.65);line-height:1.5;font-style:italic}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="om">ॐ</div>
+  <h1>Devlok AR</h1>
+  <p class="tagline">Sacred Beings Walk Among Us</p>
+  <div class="divider"></div>
+  <div class="cards">
+    <div class="card sel" data-c="garuda" onclick="pick(this)">
+      <span class="card-icon">🦅</span>
+      <div class="card-name">Garuda</div>
+      <div class="card-desc">Eagle of Vishnu</div>
+    </div>
+    <div class="card" data-c="nandi" onclick="pick(this)">
+      <span class="card-icon">🐂</span>
+      <div class="card-name">Nandi</div>
+      <div class="card-desc">Bull of Shiva</div>
+    </div>
+    <div class="card" data-c="airavata" onclick="pick(this)">
+      <span class="card-icon">🐘</span>
+      <div class="card-name">Airavata</div>
+      <div class="card-desc">Elephant of Indra</div>
+    </div>
+  </div>
+  <button class="go" onclick="begin()">ENTER THE REALM</button>
+  <p style="font-size:11px;color:rgba(245,237,216,.25);margin-top:18px;letter-spacing:1px">Allow camera · Best on mobile</p>
+</div>
+
+<!-- PERMISSION -->
+<div id="perm">
+  <div class="big">📷</div>
+  <h2>Open Your Realm</h2>
+  <p>Devlok AR places sacred beings in your physical space. Camera access required.</p>
+  <div class="perm-row">
+    <button class="pbtn primary" onclick="reqCam()">GRANT CAMERA ACCESS</button>
+    <button class="pbtn ghost" onclick="deskMode()">DESKTOP PREVIEW MODE</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loader-ring"></div>
+  <p class="load-txt" id="ltxt">Summoning sacred being…</p>
+</div>
+
+<!-- AR -->
+<div id="ar-wrap">
+  <video id="feed" autoplay playsinline muted></video>
+  <canvas id="tc"></canvas>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="corner tl"></div><div class="corner tr"></div>
+  <div class="corner bl"></div><div class="corner br"></div>
+  <div class="hud-top">
+    <div>
+      <div class="hud-name" id="hname">Garuda</div>
+      <div class="hud-sub" id="hsub">Vehicle of Vishnu</div>
+    </div>
+    <div class="hud-controls">
+      <div class="hbtn" id="abtn" onclick="toggleAudio()">🔊</div>
+      <div class="hbtn" onclick="showLore()">ℹ</div>
+    </div>
+  </div>
+  <div class="cross"><div class="dot"></div></div>
+  <div class="hud-bottom">
+    <div class="mantra" id="mtext">ॐ विष्णवे नमः</div>
+    <div class="hint">MOVE TO EXPLORE · TAP TO INTERACT</div>
+  </div>
+</div>
+
+<!-- LORE -->
+<div id="lore-popup">
+  <div class="lore-name" id="lname"></div>
+  <div class="lore-body" id="lbody"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── DATA ───────────────────────────────────────────────
+const DB = {
+  garuda:{name:'Garuda',sub:'Vehicle of Vishnu',mantra:'ॐ विष्णवे नमः',
+    lore:'Garuda is the divine eagle, king of birds, and the vahana (vehicle) of Lord Vishnu. Born of Vinata, he is the eternal enemy of the Nagas. His wingspan darkens the sky and his golden feathers shine like the sun.',
+    bodyCol:0xD4A843,wingCol:0x8B4513,accentCol:0xFFD700,beakCol:0xC8A200,
+    freqs:[174,528,396],scale:1.6,bgCol:'#0d0804'},
+  nandi:{name:'Nandi',sub:'Sacred Bull of Shiva',mantra:'ॐ नमः शिवाय',
+    lore:'Nandi is the sacred white bull and the chief gana and guardian of Kailash, the abode of Lord Shiva. He sits eternally at the entrance of Shiva\'s temple, his gaze fixed upon his lord. Those who whisper prayers into Nandi\'s ear are said to have them directly heard by Shiva.',
+    bodyCol:0xF0ECD8,wingCol:0xE0D8B8,accentCol:0xD4A853,beakCol:0xFFD700,
+    freqs:[528,432,741],scale:1.8,bgCol:'#080c0a'},
+  airavata:{name:'Airavata',sub:'Divine Elephant of Indra',mantra:'ॐ ऐं इन्द्राय नमः',
+    lore:'Airavata is the magnificent white elephant who emerged from the churning of the cosmic ocean. He is the mount of Indra, the king of the gods, and carries him across the heavens. His white skin glows like moonlight and thunderclouds follow in his wake.',
+    bodyCol:0xE8ECF5,wingCol:0xD0D8F0,accentCol:0xAABBFF,beakCol:0xFFFFCC,
+    freqs:[396,528,285],scale:2.0,bgCol:'#060810'}
+};
+
+let chosen='garuda', scene, cam, renderer, creature, clock;
+let audioCtx, oscNodes=[], muted=false;
+let isDesk=false, camStream=null;
+let devAlpha=0, devBeta=45, devGamma=0;
+let mx=0, my=0, camY=0, camX=0;
+let t=0;
+
+// ─── PARTICLES ────────────────────────────────────────
+(function(){
+  const c=document.getElementById('bg-canvas');
+  const ctx=c.getContext('2d');
+  let W=c.width=innerWidth,H=c.height=innerHeight;
+  const pts=Array.from({length:80},()=>({
+    x:Math.random()*W,y:Math.random()*H,
+    vx:(Math.random()-.5)*.25,vy:-Math.random()*.35-.05,
+    r:Math.random()*1.8+.3,
+    a:Math.random()*.4+.05,
+    col:Math.random()>.5?'201,168,76':'255,107,26'
+  }));
+  (function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.y<-4){p.y=H+4;p.x=Math.random()*W}
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.col},${p.a})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+  addEventListener('resize',()=>{W=c.width=innerWidth;H=c.height=innerHeight});
+})();
+
+// ─── UI FLOW ──────────────────────────────────────────
+function pick(el){
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');chosen=el.dataset.c;
+}
+function begin(){
+  const s=document.getElementById('splash');
+  s.style.opacity='0';setTimeout(()=>{s.style.display='none';document.getElementById('perm').style.display='flex'},800);
+}
+function reqCam(){
+  document.getElementById('perm').style.display='none';
+  loading('Opening camera…');
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+    .then(stream=>{camStream=stream;document.getElementById('feed').srcObject=stream;isDesk=false;launch()})
+    .catch(()=>deskMode());
+}
+function deskMode(){
+  document.getElementById('perm').style.display='none';
+  isDesk=true;document.getElementById('feed').style.display='none';
+  const d=DB[chosen];
+  document.getElementById('ar-wrap').style.background=
+    `radial-gradient(ellipse at 40% 60%,${d.bgCol} 0%,#040205 80%)`;
+  launch();
+}
+function loading(msg){document.getElementById('ltxt').textContent=msg;document.getElementById('loading').style.display='flex'}
+function hideLoad(){document.getElementById('loading').style.display='none'}
+function launch(){loading('Summoning '+DB[chosen].name+'…');initScene();initAudio();setTimeout(showAR,1400)}
+function showAR(){
+  hideLoad();
+  document.getElementById('ar-wrap').style.display='block';
+  document.getElementById('hud').style.display='block';
+  const d=DB[chosen];
+  document.getElementById('hname').textContent=d.name;
+  document.getElementById('hsub').textContent=d.sub;
+  document.getElementById('mtext').textContent=d.mantra;
+}
+function toggleAudio(){
+  muted=!muted;document.getElementById('abtn').textContent=muted?'🔇':'🔊';
+  if(!audioCtx)return;
+  oscNodes.forEach(({gain})=>gain.gain.linearRampToValueAtTime(muted?0:.035,audioCtx.currentTime+.6));
+}
+let loreVisible=false;
+function showLore(){
+  const d=DB[chosen];
+  document.getElementById('lname').textContent=d.name+' — '+d.sub;
+  document.getElementById('lbody').textContent=d.lore;
+  const el=document.getElementById('lore-popup');
+  if(loreVisible){el.style.display='none';loreVisible=false;}
+  else{el.style.display='block';loreVisible=true;setTimeout(()=>{el.style.display='none';loreVisible=false},8000);}
+}
+
+// ─── THREE SCENE ──────────────────────────────────────
+function initScene(){
+  const canvas=document.getElementById('tc');
+  const W=innerWidth,H=innerHeight;
+  scene=new THREE.Scene();
+  cam=new THREE.PerspectiveCamera(65,W/H,.01,200);
+  cam.position.set(0,1.6,0);
+
+  renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;
+
+  // FOG for depth
+  if(isDesk) scene.fog=new THREE.FogExp2(0x040205,.04);
+
+  buildLighting();
+  creature=buildCreature(chosen);
+  scene.add(creature);
+  buildEnvironment();
+
+  clock=new THREE.Clock();
+  if(!isDesk) setupGyro();
+  addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*2;my=(e.clientY/innerHeight-.5)*2});
+  addEventListener('touchmove',e=>{
+    const t=e.touches[0];
+    mx=(t.clientX/innerWidth-.5)*2;my=(t.clientY/innerHeight-.5)*2;
+  },{passive:true});
+  addEventListener('resize',()=>{
+    cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+  animate();
+}
+
+function buildLighting(){
+  const d=DB[chosen];
+  // Ambient warm
+  scene.add(new THREE.AmbientLight(0xffd4a0,.45));
+  // Main directional
+  const sun=new THREE.DirectionalLight(0xfff8e0,1.4);
+  sun.position.set(6,10,4);sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.near=.1;sun.shadow.camera.far=30;
+  sun.shadow.camera.left=-8;sun.shadow.camera.right=8;
+  sun.shadow.camera.top=8;sun.shadow.camera.bottom=-8;
+  sun.shadow.bias=-.001;scene.add(sun);
+  // Rim light (dramatic back)
+  const rim=new THREE.DirectionalLight(d.accentCol,.6);
+  rim.position.set(-5,4,-6);scene.add(rim);
+  // Point light glow near creature
+  const glow=new THREE.PointLight(d.accentCol,1.2,8);
+  glow.position.set(0,2,-4);scene.add(glow);
+  // Subtle fill
+  const fill=new THREE.HemisphereLight(0xfff0d0,0x102030,.4);
+  scene.add(fill);
+}
+
+// ─── CREATURE BUILDERS ────────────────────────────────
+function buildCreature(type){
+  const g=new THREE.Group();
+  if(type==='garuda') buildGaruda(g);
+  else if(type==='nandi') buildNandi(g);
+  else buildAiravata(g);
+  g.position.set(0,0,-4.5);
+  g.scale.setScalar(DB[type].scale);
+  return g;
+}
+
+function M(geo,col,rough=.5,metal=.1,emissive=null,emissiveI=0){
+  const opt={color:col,roughness:rough,metalness:metal};
+  if(emissive){opt.emissive=emissive;opt.emissiveIntensity=emissiveI;}
+  return new THREE.Mesh(geo,new THREE.MeshStandardMaterial(opt));
+}
+
+function buildGaruda(g){
+  const d=DB.garuda;
+  // ── TORSO: large, muscular eagle body ──
+  const torso=M(new THREE.SphereGeometry(.38,24,24),d.bodyCol,.55,.2);
+  torso.scale.set(1,.95,.75);torso.position.set(0,.6,0);torso.castShadow=true;g.add(torso);
+
+  // Chest plate (lighter feather zone)
+  const chest=M(new THREE.SphereGeometry(.3,16,16),0xEAC46A,.4,.15);
+  chest.scale.set(.9,1,.5);chest.position.set(0,.58,.18);g.add(chest);
+
+  // ── NECK ──
+  const neck=M(new THREE.CylinderGeometry(.14,.18,.28,12),d.bodyCol,.5,.15);
+  neck.position.set(0,.96,.05);neck.rotation.x=-.2;g.add(neck);
+
+  // ── HEAD: proud eagle head with brow ──
+  const head=M(new THREE.SphereGeometry(.22,20,20),d.bodyCol,.5,.15);
+  head.scale.set(1,1.05,.95);head.position.set(0,1.2,.1);head.castShadow=true;g.add(head);
+
+  // Skull ridge (eagle brow)
+  const brow=M(new THREE.SphereGeometry(.1,12,8),d.bodyCol,.5,.1);
+  brow.scale.set(1.8,.6,.7);brow.position.set(0,1.3,.08);g.add(brow);
+
+  // ── BEAK: curved hooked eagle beak ──
+  const upperBeak=M(new THREE.CylinderGeometry(.05,.025,.3,8),d.beakCol,.3,.3);
+  upperBeak.rotation.x=1.2;upperBeak.position.set(0,1.18,.32);g.add(upperBeak);
+  const beakTip=M(new THREE.SphereGeometry(.03,8,8),d.beakCol,.3,.3);
+  beakTip.position.set(0,1.07,.44);g.add(beakTip);
+  const lowerBeak=M(new THREE.CylinderGeometry(.04,.02,.18,8),d.beakCol,.35,.25);
+  lowerBeak.rotation.x=1.4;lowerBeak.position.set(0,1.14,.3);g.add(lowerBeak);
+
+  // ── EYES: intense eagle eyes with irises ──
+  [-.1,.1].forEach(x=>{
+    const eyeWhite=M(new THREE.SphereGeometry(.045,12,12),0xFFFFEE,.2,0);
+    eyeWhite.position.set(x,1.22,.2);g.add(eyeWhite);
+    const iris=M(new THREE.SphereGeometry(.032,12,12),0xCC5500,.1,.1,0xDD3300,.3);
+    iris.position.set(x,1.22,.24);g.add(iris);
+    const pupil=M(new THREE.SphereGeometry(.018,8,8),0x110000,.05,0);
+    pupil.position.set(x,1.22,.26);g.add(pupil);
+    // Eyelid ridge
+    const lid=M(new THREE.SphereGeometry(.05,10,6),d.bodyCol,.6,.1);
+    lid.scale.set(1.1,.6,.6);lid.position.set(x,1.26,.18);g.add(lid);
+  });
+
+  // ── CROWN: elaborate feather crest ──
+  for(let i=0;i<7;i++){
+    const ang=(i/6-.5)*1.0;
+    const feather=M(new THREE.CylinderGeometry(.025,.008,.3+Math.abs(i-3)*.04,6),
+      i%2===0?0xFFD700:d.bodyCol,.4,.4);
+    feather.position.set(Math.sin(ang)*.12,1.45,Math.cos(ang)*.04);
+    feather.rotation.z=ang*.8;feather.rotation.x=-.2;g.add(feather);
+  }
+
+  // ── WINGS: detailed multi-layer feathered wings ──
+  function buildWing(side){
+    const wg=new THREE.Group();
+    // Upper arm (humerus)
+    const upper=M(new THREE.CylinderGeometry(.08,.06,.6,10),d.wingCol,.6,.05);
+    upper.rotation.z=side*(.8);upper.position.set(side*.5,.72,0);
+    upper.rotation.x=-.1;wg.add(upper);
+    // Forearm
+    const fore=M(new THREE.CylinderGeometry(.06,.04,.7,10),d.wingCol,.65,.05);
+    fore.rotation.z=side*(1.1);fore.position.set(side*.95,.58,-.05);wg.add(fore);
+    // Primary feathers (long outer feathers)
+    for(let i=0;i<8;i++){
+      const len=.35+i*.05;
+      const feather=M(new THREE.CylinderGeometry(.025,.008,len,6),
+        i%2===0?d.wingCol:0x3D1C00,.55,.02);
+      feather.position.set(side*(1.2+i*.12),.42-.12*i,-.02+i*.02);
+      feather.rotation.z=side*(1.3+i*.06);
+      feather.rotation.x=.1+i*.02;wg.add(feather);
+    }
+    // Secondary covert feathers
+    for(let i=0;i<6;i++){
+      const f=M(new THREE.CylinderGeometry(.02,.007,.25,6),
+        i%2===0?0x7A3800:d.wingCol,.6,.02);
+      f.position.set(side*(.7+i*.1),.62-.08*i,.05);
+      f.rotation.z=side*(.9+i*.05);wg.add(f);
+    }
+    // Wing membrane (thin connecting tissue)
+    const memGeo=new THREE.PlaneGeometry(.9,.5,4,4);
+    const memMat=new THREE.MeshStandardMaterial({color:d.wingCol,roughness:.8,metalness:0,transparent:true,opacity:.7,side:THREE.DoubleSide});
+    const mem=new THREE.Mesh(memGeo,memMat);
+    mem.position.set(side*.85,.55,0);mem.rotation.z=side*.8;mem.rotation.y=.1;wg.add(mem);
+    return wg;
+  }
+  g.add(buildWing(1));g.add(buildWing(-1));
+  g.userData.leftWing=g.children[g.children.length-1];
+  g.userData.rightWing=g.children[g.children.length-2];
+
+  // ── TALONS / LEGS ──
+  [-.15,.15].forEach(x=>{
+    const thigh=M(new THREE.CylinderGeometry(.07,.055,.3,8),d.bodyCol,.6,.05);
+    thigh.position.set(x,.2,.05);g.add(thigh);
+    const shin=M(new THREE.CylinderGeometry(.05,.04,.28,8),0xD4901A,.5,.1);
+    shin.position.set(x,-.04,.08);g.add(shin);
+    // 3 talons
+    for(let t2=0;t2<3;t2++){
+      const ta=M(new THREE.CylinderGeometry(.022,.008,.18,6),0x222200,.3,.2);
+      ta.position.set(x+(t2-1)*.07,-.25,.12+t2*.02);ta.rotation.x=.4;g.add(ta);
+    }
+  });
+
+  // ── TAIL FEATHERS ──
+  for(let i=0;i<7;i++){
+    const ang=(i/6-.5)*.8;
+    const tf=M(new THREE.CylinderGeometry(.025,.01,.42+Math.abs(i-3)*.04,6),
+      i%2===0?d.wingCol:0x4a2000,.5,.02);
+    tf.position.set(Math.sin(ang)*.1,.32,-Math.cos(ang)*.12-.35);
+    tf.rotation.x=-1.0+ang*.3;tf.rotation.z=ang*.5;g.add(tf);
+  }
+
+  // ── DIVINE GLOW (halo ring) ──
+  const haloGeo=new THREE.TorusGeometry(.35,.012,12,64);
+  const haloMat=new THREE.MeshStandardMaterial({color:0xFFD700,emissive:0xFFAA00,emissiveIntensity:.8,roughness:.2,metalness:.8});
+  const halo=new THREE.Mesh(haloGeo,haloMat);
+  halo.position.set(0,1.6,.05);halo.rotation.x=.25;g.add(halo);
+  g.userData.halo=halo;
+
+  addAura(g);addGroundGlow(g,d.accentCol);
+}
+
+function buildNandi(g){
+  const d=DB.nandi;
+  // ── MASSIVE BODY of a bull ──
+  const body=M(new THREE.SphereGeometry(.55,24,20),d.bodyCol,.7,.05);
+  body.scale.set(1.1,1,1.4);body.position.set(0,.6,0);body.castShadow=true;g.add(body);
+  // Belly (slightly lighter)
+  const belly=M(new THREE.SphereGeometry(.45,16,14),0xFAF5E8,.7,0);
+  belly.scale.set(.8,.65,1.1);belly.position.set(0,.38,.12);g.add(belly);
+
+  // ── HUMP (Brahman bull characteristic) ──
+  const hump=M(new THREE.SphereGeometry(.28,16,14),d.bodyCol,.65,.05);
+  hump.scale.set(.8,1.3,.9);hump.position.set(0,1.0,-.15);g.add(hump);
+
+  // ── NECK & DEWLAP ──
+  const neck=M(new THREE.CylinderGeometry(.2,.25,.4,14),d.bodyCol,.68,.05);
+  neck.position.set(0,.9,.45);neck.rotation.x=-.35;g.add(neck);
+  const dewlap=M(new THREE.SphereGeometry(.14,12,10),0xF0E8D0,.75,0);
+  dewlap.scale.set(.6,1.4,.5);dewlap.position.set(0,.58,.62);g.add(dewlap);
+
+  // ── HEAD: noble bull head ──
+  const head=M(new THREE.SphereGeometry(.28,20,16),d.bodyCol,.65,.05);
+  head.scale.set(1,1,1.1);head.position.set(0,1.05,.75);head.castShadow=true;g.add(head);
+  // Snout box
+  const snout=M(new THREE.BoxGeometry(.32,.22,.28),0xEDE5CC,.7,.04);
+  snout.position.set(0,.95,1.0);g.add(snout);
+  // Nostrils
+  [-.08,.08].forEach(x=>{
+    const n=M(new THREE.CylinderGeometry(.04,.035,.04,10),0xC8A890,.8,0);
+    n.position.set(x,.9,1.15);n.rotation.x=Math.PI/2;g.add(n);
+  });
+  // Forehead bump
+  const fore=M(new THREE.SphereGeometry(.15,12,10),d.bodyCol,.6,.04);
+  fore.scale.set(.9,.7,.6);fore.position.set(0,1.28,.72);g.add(fore);
+
+  // ── HORNS: large sweeping bull horns ──
+  [-.22,.22].forEach(x=>{
+    // Base
+    const base=M(new THREE.CylinderGeometry(.07,.05,.22,10),d.accentCol,.4,.3);
+    base.position.set(x,1.35,.68);base.rotation.z=x>0?-.3:.3;g.add(base);
+    // Curve (two segments)
+    const seg1=M(new THREE.CylinderGeometry(.05,.035,.3,10),d.accentCol,.4,.3);
+    seg1.position.set(x*1.4,1.45,.66);seg1.rotation.z=x>0?-.65:.65;seg1.rotation.x=.1;g.add(seg1);
+    const tip=M(new THREE.ConeGeometry(.03,.25,8),0xE8C860,.3,.4);
+    tip.position.set(x*1.85,1.42,.62);tip.rotation.z=x>0?-1.1:1.1;g.add(tip);
+  });
+
+  // ── EYES: gentle but powerful ──
+  [-.14,.14].forEach(x=>{
+    const eyeW=M(new THREE.SphereGeometry(.055,14,14),0xFFFFFA,.2,0);
+    eyeW.position.set(x,1.1,.97);g.add(eyeW);
+    const iris=M(new THREE.SphereGeometry(.038,12,12),0x3D2800,.15,.05);
+    iris.position.set(x,1.1,.99);g.add(iris);
+    const pupil=M(new THREE.SphereGeometry(.022,8,8),0x050300,.05,0);
+    pupil.position.set(x,1.1,1.01);g.add(pupil);
+    // Lashes
+    const lash=M(new THREE.SphereGeometry(.06,10,6),d.bodyCol,.7,.02);
+    lash.scale.set(1.1,.45,.55);lash.position.set(x,1.14,.94);g.add(lash);
+  });
+  // Ears
+  [-.27,.27].forEach(x=>{
+    const ear=M(new THREE.SphereGeometry(.13,12,10),d.bodyCol,.7,.03);
+    ear.scale.set(.4,1,1.1);ear.position.set(x,1.18,.72);
+    ear.rotation.z=x>0?.4:-.4;g.add(ear);
+    const inner=M(new THREE.SphereGeometry(.08,10,8),0xF0C8B0,.8,0);
+    inner.scale.set(.3,.8,1);inner.position.set(x*1.05,1.18,.74);
+    inner.rotation.z=x>0?.4:-.4;g.add(inner);
+  });
+
+  // ── SACRED TILAK ──
+  const tilak=M(new THREE.CircleGeometry(.05,16),0xFF5500,.2,0,0xFF3300,.9);
+  tilak.position.set(0,1.26,1.04);g.add(tilak);
+  // Tri-pundra lines (horizontal ash marks)
+  for(let i=0;i<3;i++){
+    const line=M(new THREE.BoxGeometry(.12,.015,.005),0xF5F5F5,.3,0);
+    line.position.set(0,1.14-.04+i*.025,1.04);g.add(line);
+  }
+
+  // ── LEGS: powerful bull legs ──
+  [[-0.32,-0.4],[0.32,-0.4],[-0.32,0.45],[0.32,0.45]].forEach(([x,z])=>{
+    const thigh=M(new THREE.CylinderGeometry(.13,.11,.38,12),d.bodyCol,.7,.04);
+    thigh.position.set(x,.3,z);g.add(thigh);
+    const shin=M(new THREE.CylinderGeometry(.1,.08,.3,12),d.bodyCol,.72,.04);
+    shin.position.set(x,.04,z);g.add(shin);
+    const hoof=M(new THREE.CylinderGeometry(.1,.09,.08,14),0x2A2010,.4,.2);
+    hoof.position.set(x,-.09,z);g.add(hoof);
+  });
+
+  // ── TAIL ──
+  const tailBase=M(new THREE.CylinderGeometry(.06,.04,.4,8),d.bodyCol,.7,.03);
+  tailBase.position.set(0,.55,-.7);tailBase.rotation.x=.5;g.add(tailBase);
+  const tailTip=M(new THREE.SphereGeometry(.08,10,8),0x554433,.6,.05);
+  tailTip.scale.set(.5,1.5,.5);tailTip.position.set(0,.82,-.92);g.add(tailTip);
+
+  // ── ORNAMENT: garland / necklace ──
+  for(let i=0;i<12;i++){
+    const a=(i/12)*Math.PI;
+    const flower=M(new THREE.SphereGeometry(.04,8,8),
+      i%3===0?0xFF6644:i%3===1?0xFFCC00:0xFF4488,.5,0);
+    flower.position.set(Math.sin(a)*.3,.78-.08,Math.cos(a)*.22+.55);g.add(flower);
+  }
+
+  // Halo
+  const haloGeo=new THREE.TorusGeometry(.42,.013,12,64);
+  const haloMat=new THREE.MeshStandardMaterial({color:0xFFD700,emissive:0xFFAA00,emissiveIntensity:.7,roughness:.2,metalness:.8});
+  const halo=new THREE.Mesh(haloGeo,haloMat);
+  halo.position.set(0,1.55,.7);halo.rotation.x=.4;g.add(halo);
+  g.userData.halo=halo;
+  addAura(g);addGroundGlow(g,d.accentCol);
+}
+
+function buildAiravata(g){
+  const d=DB.airavata;
+  // ── MASSIVE BODY ──
+  const body=M(new THREE.SphereGeometry(.62,24,20),d.bodyCol,.45,.12);
+  body.scale.set(1.15,1,1.45);body.position.set(0,.7,0);body.castShadow=true;g.add(body);
+  // Belly
+  const belly=M(new THREE.SphereGeometry(.5,16,14),0xF8FAFF,.5,.08);
+  belly.scale.set(.9,.7,1.1);belly.position.set(0,.45,.12);g.add(belly);
+
+  // ── NECK ──
+  const neck=M(new THREE.CylinderGeometry(.22,.28,.35,14),d.bodyCol,.5,.1);
+  neck.position.set(0,.98,.6);neck.rotation.x=-.3;g.add(neck);
+
+  // ── HEAD: large domed elephant head ──
+  const head=M(new THREE.SphereGeometry(.38,24,20),d.bodyCol,.45,.1);
+  head.scale.set(1,1.05,.9);head.position.set(0,1.1,.85);head.castShadow=true;g.add(head);
+  // Frontal bulge (elephant forehead)
+  const dome=M(new THREE.SphereGeometry(.25,16,14),d.bodyCol,.45,.1);
+  dome.scale.set(.9,1,.7);dome.position.set(0,1.3,.85);g.add(dome);
+
+  // ── TRUNK: multi-segment curving trunk ──
+  const trunkSegs=10;
+  for(let i=0;i<trunkSegs;i++){
+    const pct=i/trunkSegs;
+    const r=.12-pct*.05;
+    const seg=M(new THREE.SphereGeometry(r,12,10),d.bodyCol,.5,.08);
+    const angle=pct*1.4-0.2;
+    const tx=Math.sin(angle*.5)*.08;
+    const ty=1.05-pct*.5;
+    const tz=.95+pct*.35+Math.sin(pct*2)*0.08;
+    seg.position.set(tx,ty,tz);
+    // Wrinkle ring on some segments
+    if(i%2===0){
+      const ring=M(new THREE.TorusGeometry(r+.01,.01,6,16),0xD8E0F0,.6,.1);
+      ring.position.set(tx,ty,tz);ring.rotation.x=Math.PI/2;g.add(ring);
+    }
+    g.add(seg);
+  }
+  // Trunk tip (flared nostrils)
+  const tip=M(new THREE.SphereGeometry(.08,12,10),d.bodyCol,.5,.08);
+  tip.scale.set(1.2,1,1);tip.position.set(0,.6,1.3);g.add(tip);
+  [-.04,.04].forEach(x=>{
+    const nostril=M(new THREE.CylinderGeometry(.025,.025,.02,10),0xD0D8F0,.6,.1);
+    nostril.position.set(x,.6,1.36);nostril.rotation.x=Math.PI/2;g.add(nostril);
+  });
+
+  // ── LARGE EARS ──
+  [-.55,.55].forEach(s=>{
+    const ear=M(new THREE.SphereGeometry(.38,16,12),d.bodyCol,.5,.1);
+    ear.scale.set(.18,1,1.1);ear.position.set(s,1.1,.82);
+    ear.rotation.z=s>0?.15:-.15;ear.castShadow=true;g.add(ear);
+    const earVein=M(new THREE.SphereGeometry(.3,12,10),0xD8E4F8,.6,.05);
+    earVein.scale.set(.12,.85,1);earVein.position.set(s*1.02,1.1,.83);g.add(earVein);
+  });
+
+  // ── EYES ──
+  [-.2,.2].forEach(x=>{
+    const eyeW=M(new THREE.SphereGeometry(.065,14,14),0xF8F8FF,.2,0);
+    eyeW.position.set(x,1.18,1.14);g.add(eyeW);
+    const iris=M(new THREE.SphereGeometry(.045,12,12),0x2A3860,.15,.05);
+    iris.position.set(x,1.18,1.16);g.add(iris);
+    const pupil=M(new THREE.SphereGeometry(.025,8,8),0x030508,.05,0);
+    pupil.position.set(x,1.18,1.18);g.add(pupil);
+    // Highlight
+    const hi=M(new THREE.SphereGeometry(.01,6,6),0xFFFFFF,.1,0);
+    hi.position.set(x+.02,1.19,1.19);g.add(hi);
+  });
+
+  // ── TUSKS: long curved ivory tusks ──
+  [-.18,.18].forEach(x=>{
+    for(let i=0;i<5;i++){
+      const a=i/4;
+      const tusk=M(new THREE.CylinderGeometry(.045-a*.01,.035-a*.01,.22,10),0xFFFAEA,.3,.1);
+      tusk.position.set(x*(1+a*.6),.88-a*.12,1.05+a*.2);
+      tusk.rotation.x=-.3+a*.15;tusk.rotation.z=x>0?(-.15-a*.25):(.15+a*.25);g.add(tusk);
+    }
+  });
+
+  // ── LEGS ──
+  [[-0.38,-0.42],[0.38,-0.42],[-0.38,0.48],[0.38,0.48]].forEach(([x,z])=>{
+    const thigh=M(new THREE.CylinderGeometry(.16,.14,.42,14),d.bodyCol,.5,.1);
+    thigh.position.set(x,.33,z);g.add(thigh);
+    const shin=M(new THREE.CylinderGeometry(.14,.12,.35,14),d.bodyCol,.52,.1);
+    shin.position.set(x,.04,z);g.add(shin);
+    // Toe wrinkles
+    for(let t2=0;t2<3;t2++){
+      const toe=M(new THREE.SphereGeometry(.08,10,8),0xDDE4F5,.5,.08);
+      toe.scale.set(1,.5,1.2);toe.position.set(x+(t2-1)*.1,-.07,z+.08);g.add(toe);
+    }
+    const foot=M(new THREE.CylinderGeometry(.18,.17,.06,14),d.bodyCol,.5,.1);
+    foot.position.set(x,-.08,z);g.add(foot);
+  });
+
+  // ── ROYAL CROWN / HOWDAH ──
+  const crownBase=M(new THREE.CylinderGeometry(.28,.32,.1,20),d.accentCol,.3,.5);
+  crownBase.position.set(0,1.55,.8);g.add(crownBase);
+  // Crown spires
+  for(let i=0;i<10;i++){
+    const a=(i/10)*Math.PI*2;
+    const spire=M(new THREE.CylinderGeometry(.025,.018,.22,8),0xFFD700,.2,.7,0xFFAA00,.4);
+    spire.position.set(.25*Math.cos(a),1.72,.8+.25*Math.sin(a));g.add(spire);
+  }
+  const gem=M(new THREE.SphereGeometry(.06,12,12),0xFF3388,.2,.3,0xFF0066,.8);
+  gem.position.set(0,1.72,.8);g.add(gem);
+
+  // ── ORNAMENTAL CHAIN ──
+  for(let i=0;i<18;i++){
+    const a=(i/18)*Math.PI*1.6-.3;
+    const bead=M(new THREE.SphereGeometry(.04,8,8),
+      i%4===0?0xFFD700:i%4===1?0xFF6600:i%4===2?0xCC2244:0x4488FF,.3,.5);
+    bead.position.set(Math.sin(a)*.5,.68,Math.cos(a)*.35+.5);g.add(bead);
+  }
+
+  // Halo
+  const haloGeo=new THREE.TorusGeometry(.5,.013,12,64);
+  const haloMat=new THREE.MeshStandardMaterial({color:0xAABBFF,emissive:0x8899DD,emissiveIntensity:.7,roughness:.2,metalness:.7});
+  const halo=new THREE.Mesh(haloGeo,haloMat);
+  halo.position.set(0,1.75,.8);halo.rotation.x=.4;g.add(halo);
+  g.userData.halo=halo;
+  addAura(g);addGroundGlow(g,d.accentCol);
+}
+
+// ─── SHARED EFFECTS ─────────────────────────────────
+function addAura(g){
+  const count=300;
+  const geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(count*3);
+  const col=new Float32Array(count*3);
+  const d=DB[chosen];
+  const r2=(d.accentCol>>16&255)/255,g2=(d.accentCol>>8&255)/255,b2=(d.accentCol&255)/255;
+  for(let i=0;i<count;i++){
+    const a=Math.random()*Math.PI*2;
+    const r=.6+Math.random()*1.5;
+    pos[i*3]=Math.cos(a)*r;pos[i*3+1]=Math.random()*2.8;pos[i*3+2]=Math.sin(a)*r;
+    pos[i*3+2]-=0; // will be offset by parent
+    col[i*3]=r2+Math.random()*.2;col[i*3+1]=g2+Math.random()*.1;col[i*3+2]=b2+Math.random()*.3;
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.04,vertexColors:true,transparent:true,opacity:.65}));
+  g.userData.aura=pts;g.add(pts);
+}
+
+function addGroundGlow(g,col){
+  const geo=new THREE.CircleGeometry(2,64);
+  const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.06,side:THREE.DoubleSide});
+  const circle=new THREE.Mesh(geo,mat);
+  circle.rotation.x=-Math.PI/2;circle.position.y=.01;
+  // Inner ring
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.3,.35,64),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.25,side:THREE.DoubleSide}));
+  ring.rotation.x=-Math.PI/2;ring.position.y=.02;
+  [1.0,1.5,2.0].forEach(r=>{
+    const r2=new THREE.Mesh(new THREE.RingGeometry(r-.02,r+.02,64),
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.1,side:THREE.DoubleSide}));
+    r2.rotation.x=-Math.PI/2;r2.position.y=.015;g.add(r2);
+  });
+  g.add(circle);g.add(ring);
+}
+
+function buildEnvironment(){
+  // Ground shadow receiver
+  const floor=new THREE.Mesh(
+    new THREE.PlaneGeometry(40,40),
+    new THREE.MeshStandardMaterial({color:0x110d18,roughness:.9,metalness:0,transparent:true,opacity:.0})
+  );
+  floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+
+  // Floating sparkles in environment
+  const sGeo=new THREE.BufferGeometry();
+  const sPos=new Float32Array(500*3);
+  for(let i=0;i<500;i++){
+    sPos[i*3]=(Math.random()-.5)*20;
+    sPos[i*3+1]=Math.random()*6;
+    sPos[i*3+2]=(Math.random()-.5)*20-3;
+  }
+  sGeo.setAttribute('position',new THREE.BufferAttribute(sPos,3));
+  const sparkles=new THREE.Points(sGeo,new THREE.PointsMaterial({size:.025,color:0xFFDD88,transparent:true,opacity:.35}));
+  scene.add(sparkles);
+}
+
+// ─── GYROSCOPE ─────────────────────────────────────
+function setupGyro(){
+  if(typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(p=>{
+      if(p==='granted')addEventListener('deviceorientation',onOrient);
+    }).catch(()=>{});
+  } else {
+    addEventListener('deviceorientation',onOrient);
+  }
+}
+function onOrient(e){devAlpha=e.alpha||0;devBeta=e.beta||45;devGamma=e.gamma||0;}
+
+// ─── AUDIO ─────────────────────────────────────────
+function initAudio(){
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const d=DB[chosen];
+
+  d.freqs.forEach((freq,i)=>{
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+    const filter=audioCtx.createBiquadFilter();
+    const reverb=audioCtx.createConvolver();
+    const panner=audioCtx.createStereoPanner();
+
+    // Reverb impulse (simulate large sacred space)
+    const irLen=audioCtx.sampleRate*2.5;
+    const irBuf=audioCtx.createBuffer(2,irLen,audioCtx.sampleRate);
+    for(let ch=0;ch<2;ch++){
+      const data=irBuf.getChannelData(ch);
+      for(let s=0;s<irLen;s++) data[s]=(Math.random()*2-1)*Math.pow(1-s/irLen,2.5);
+    }
+    reverb.buffer=irBuf;
+
+    osc.type=i===0?'sine':i===1?'triangle':'sine';
+    osc.frequency.value=freq;
+
+    // Slow subtle vibrato
+    const lfo=audioCtx.createOscillator();
+    const lfoG=audioCtx.createGain();
+    lfo.frequency.value=.12+i*.05;lfoG.gain.value=1.2;
+    lfo.connect(lfoG);lfoG.connect(osc.frequency);lfo.start();
+
+    filter.type='lowpass';filter.frequency.value=600+i*100;filter.Q.value=2;
+
+    gain.gain.setValueAtTime(0,audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(.03-i*.005,audioCtx.currentTime+2.5);
+
+    panner.pan.value=(i-1)*.5;
+
+    osc.connect(filter);filter.connect(reverb);reverb.connect(gain);gain.connect(panner);panner.connect(audioCtx.destination);
+    // Dry signal too
+    filter.connect(gain);
+    osc.start();
+
+    oscNodes.push({osc,gain,lfo});
+  });
+
+  // Sub bass drone
+  const sub=audioCtx.createOscillator();
+  const subG=audioCtx.createGain();
+  sub.type='sine';sub.frequency.value=d.freqs[0]/2;
+  subG.gain.setValueAtTime(0,audioCtx.currentTime);
+  subG.gain.linearRampToValueAtTime(.018,audioCtx.currentTime+3);
+  sub.connect(subG);subG.connect(audioCtx.destination);sub.start();
+  oscNodes.push({osc:sub,gain:subG,lfo:null});
+
+  scheduleBell(d.freqs);
+}
+
+function scheduleBell(freqs){
+  if(!audioCtx)return;
+  const t=audioCtx.currentTime;
+  [freqs[0],freqs[0]*1.5].forEach((f,i)=>{
+    const b=audioCtx.createOscillator();
+    const bg=audioCtx.createGain();
+    const brev=audioCtx.createConvolver();
+    const irLen=audioCtx.sampleRate*3;
+    const irBuf=audioCtx.createBuffer(1,irLen,audioCtx.sampleRate);
+    const d2=irBuf.getChannelData(0);
+    for(let s=0;s<irLen;s++) d2[s]=(Math.random()*2-1)*Math.pow(1-s/irLen,1.8);
+    brev.buffer=irBuf;
+    b.type='sine';b.frequency.value=f;
+    bg.gain.setValueAtTime(0,t+i*.1);bg.gain.linearRampToValueAtTime(.08,t+i*.1+.01);
+    bg.gain.exponentialRampToValueAtTime(.001,t+i*.1+2.5);
+    b.connect(bg);bg.connect(brev);brev.connect(audioCtx.destination);bg.connect(audioCtx.destination);
+    b.start(t+i*.1);b.stop(t+i*.1+3);
+  });
+  setTimeout(()=>scheduleBell(freqs),8000+Math.random()*6000);
+}
+
+// ─── ANIMATE ───────────────────────────────────────
+function animate(){
+  requestAnimationFrame(animate);
+  const delta=clock.getDelta();
+  t+=delta;
+
+  // Camera look from gyro / mouse
+  let tx,ty;
+  if(isDesk){tx=mx*.5;ty=-my*.25;}
+  else{tx=(devGamma/45)*.7;ty=((devBeta-45)/35)*.45;}
+  camY+=(tx-camY)*.04;
+  camX+=(ty-camX)*.04;
+  cam.rotation.order='YXZ';
+  cam.rotation.y=camY;cam.rotation.x=camX;
+
+  if(creature){
+    // Idle bob
+    creature.position.y=Math.sin(t*.55)*.07;
+    // Slow sway
+    creature.rotation.y=Math.sin(t*.28)*.12;
+
+    // Garuda wing flap
+    if(chosen==='garuda'){
+      const lw=creature.userData.leftWing;
+      const rw=creature.userData.rightWing;
+      if(lw) lw.rotation.z=-.05+Math.sin(t*1.8)*.18;
+      if(rw) rw.rotation.z=.05-Math.sin(t*1.8)*.18;
+    }
+
+    // Halo spin + pulse
+    const halo=creature.userData.halo;
+    if(halo){
+      halo.rotation.z+=delta*.4;
+      halo.material.emissiveIntensity=.5+Math.sin(t*2)*.35;
+    }
+
+    // Aura particle drift
+    const aura=creature.userData.aura;
+    if(aura){
+      const pos=aura.geometry.attributes.position;
+      for(let i=0;i<pos.count;i++){
+        pos.setY(i,pos.getY(i)+delta*.12);
+        if(pos.getY(i)>3) pos.setY(i,-.2);
+      }
+      pos.needsUpdate=true;
+      aura.rotation.y+=delta*.08;
+    }
+  }
+  renderer.render(scene,cam);
+}
+
+// Resume audio on touch
+['touchstart','click'].forEach(ev=>addEventListener(ev,()=>{
+  if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
+},{once:true}));
+</script>
+</body>
+</html>
