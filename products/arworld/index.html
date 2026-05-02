@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>Devlok AR — Sacred Creatures in Your World</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;1,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D07A;
+    --deep: #0a0608;
+    --saffron: #FF6B1A;
+    --cream: #F5EDD8;
+  }
+
+  body {
+    font-family: 'Crimson Pro', Georgia, serif;
+    background: var(--deep);
+    color: var(--cream);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── SPLASH SCREEN ── */
+  #splash {
+    position: fixed; inset: 0; z-index: 100;
+    background: radial-gradient(ellipse at 50% 30%, #1a0e05 0%, #0a0608 70%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0;
+    transition: opacity 0.8s ease;
+  }
+
+  .om-symbol {
+    font-size: 80px;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(201,168,76,0.6), 0 0 80px rgba(201,168,76,0.2);
+    animation: pulse-glow 3s ease-in-out infinite;
+    margin-bottom: 12px;
+    line-height: 1;
+  }
+
+  @keyframes pulse-glow {
+    0%,100% { text-shadow: 0 0 30px rgba(201,168,76,0.5), 0 0 60px rgba(201,168,76,0.2); }
+    50% { text-shadow: 0 0 60px rgba(201,168,76,0.9), 0 0 120px rgba(201,168,76,0.4), 0 0 200px rgba(255,107,26,0.2); }
+  }
+
+  #splash h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  #splash .tagline {
+    font-size: 14px;
+    font-style: italic;
+    color: rgba(245,237,216,0.5);
+    letter-spacing: 2px;
+    margin-bottom: 40px;
+  }
+
+  .divider {
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 16px auto;
+  }
+
+  .creature-select {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 280px;
+    margin-bottom: 32px;
+  }
+
+  .creature-btn {
+    background: linear-gradient(135deg, rgba(201,168,76,0.08), rgba(201,168,76,0.02));
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 12px;
+    padding: 14px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.25s ease;
+    color: var(--cream);
+    font-family: 'Crimson Pro', serif;
+    text-align: left;
+  }
+
+  .creature-btn:hover, .creature-btn.selected {
+    background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05));
+    border-color: var(--gold);
+    transform: translateX(4px);
+  }
+
+  .creature-btn .icon { font-size: 28px; line-height: 1; }
+  .creature-btn .name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); margin-bottom: 2px; }
+  .creature-btn .lore { font-size: 12px; color: rgba(245,237,216,0.55); font-style: italic; line-height: 1.3; }
+
+  .start-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--gold), var(--saffron));
+    border: none;
+    border-radius: 40px;
+    padding: 14px 40px;
+    color: #0a0608;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 30px rgba(201,168,76,0.3);
+  }
+
+  .start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(201,168,76,0.5);
+  }
+
+  .start-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* ── AR CANVAS ── */
+  #ar-container {
+    position: fixed; inset: 0;
+    display: none;
+  }
+
+  #ar-canvas {
+    width: 100%; height: 100%;
+    display: block;
+  }
+
+  video#cam-feed {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  canvas#three-canvas {
+    position: absolute; inset: 0;
+    z-index: 1;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* ── HUD ── */
+  #hud {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    display: none;
+  }
+
+  .hud-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 20px 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .hud-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(201,168,76,0.8);
+    text-transform: uppercase;
+  }
+
+  .hud-creature-name {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .audio-btn {
+    pointer-events: all;
+    background: rgba(10,6,8,0.6);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+  }
+
+  .audio-btn:hover { border-color: var(--gold); }
+
+  .hud-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 0 20px 32px;
+    text-align: center;
+  }
+
+  .mantra-text {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    color: rgba(201,168,76,0.7);
+    letter-spacing: 2px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    animation: mantra-fade 8s ease-in-out infinite;
+  }
+
+  @keyframes mantra-fade {
+    0%,100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .crosshair {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px; height: 24px;
+  }
+
+  .crosshair::before, .crosshair::after {
+    content: '';
+    position: absolute;
+    background: rgba(201,168,76,0.6);
+  }
+
+  .crosshair::before {
+    width: 1px; height: 100%;
+    left: 50%; transform: translateX(-50%);
+  }
+
+  .crosshair::after {
+    height: 1px; width: 100%;
+    top: 50%; transform: translateY(-50%);
+  }
+
+  .corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: rgba(201,168,76,0.5);
+    border-style: solid;
+    border-width: 0;
+  }
+
+  .corner.tl { top: 16px; left: 16px; border-top-width: 2px; border-left-width: 2px; border-radius: 2px 0 0 0; }
+  .corner.tr { top: 16px; right: 16px; border-top-width: 2px; border-right-width: 2px; border-radius: 0 2px 0 0; }
+  .corner.bl { bottom: 16px; left: 16px; border-bottom-width: 2px; border-left-width: 2px; border-radius: 0 0 0 2px; }
+  .corner.br { bottom: 16px; right: 16px; border-bottom-width: 2px; border-right-width: 2px; border-radius: 0 0 2px 0; }
+
+  /* ── LOADING ── */
+  #loading {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--deep);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .loading-ring {
+    width: 60px; height: 60px;
+    border: 2px solid rgba(201,168,76,0.1);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: rgba(201,168,76,0.6);
+    text-transform: uppercase;
+  }
+
+  /* ── PERMISSION SCREEN ── */
+  #perm-screen {
+    position: fixed; inset: 0; z-index: 150;
+    background: var(--deep);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  #perm-screen .icon { font-size: 56px; }
+  #perm-screen h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    color: var(--gold);
+  }
+  #perm-screen p { font-size: 14px; color: rgba(245,237,216,0.6); line-height: 1.6; }
+
+  .perm-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 12px; letter-spacing: 3px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    border-radius: 40px;
+    padding: 12px 32px;
+    color: var(--gold);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .perm-btn:hover { background: rgba(201,168,76,0.1); }
+
+  /* particle canvas */
+  #particle-canvas {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Ambient particle bg -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="om-symbol">ॐ</div>
+  <h1>Devlok AR</h1>
+  <p class="tagline">Sacred Beings Enter Your World</p>
+  <div class="divider"></div>
+
+  <div class="creature-select">
+    <button class="creature-btn selected" data-creature="garuda" onclick="selectCreature(this)">
+      <span class="icon">🦅</span>
+      <div>
+        <div class="name">Garuda</div>
+        <div class="lore">Divine eagle vehicle of Vishnu — bringer of freedom</div>
+      </div>
+    </button>
+    <button class="creature-btn" data-creature="nandi" onclick="selectCreature(this)">
+      <span class="icon">🐂</span>
+      <div>
+        <div class="name">Nandi</div>
+        <div class="lore">Sacred bull of Shiva — guardian of the threshold</div>
+      </div>
+    </button>
+    <button class="creature-btn" data-creature="airavata" onclick="selectCreature(this)">
+      <span class="icon">🐘</span>
+      <div>
+        <div class="name">Airavata</div>
+        <div class="lore">The white elephant of Indra — born from the cosmic ocean</div>
+      </div>
+    </button>
+  </div>
+
+  <button class="start-btn" onclick="startAR()">ENTER THE REALM</button>
+  <p style="font-size:11px;color:rgba(245,237,216,0.3);margin-top:16px;letter-spacing:1px;">Allow camera when prompted · Best on mobile</p>
+</div>
+
+<!-- PERMISSION ASK -->
+<div id="perm-screen">
+  <div class="icon">📷</div>
+  <h2>Camera Access</h2>
+  <p>Devlok AR needs your camera to place sacred beings in your physical space.</p>
+  <button class="perm-btn" onclick="requestCamera()">GRANT ACCESS</button>
+  <button class="perm-btn" onclick="runDesktopMode()" style="border-color:rgba(201,168,76,0.3);color:rgba(201,168,76,0.4);margin-top:8px;">DESKTOP PREVIEW</button>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loading-ring"></div>
+  <p class="loading-text" id="load-msg">Summoning...</p>
+</div>
+
+<!-- AR VIEW -->
+<div id="ar-container">
+  <video id="cam-feed" autoplay playsinline muted></video>
+  <canvas id="three-canvas"></canvas>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <div class="hud-top">
+    <div>
+      <div class="hud-title">Devlok AR</div>
+      <div class="hud-creature-name" id="hud-name">Garuda</div>
+    </div>
+    <button class="audio-btn" id="audio-btn" onclick="toggleAudio()">🔊</button>
+  </div>
+
+  <div class="crosshair"></div>
+
+  <div class="hud-bottom">
+    <div class="mantra-text" id="mantra-text">ॐ विष्णवे नमः</div>
+    <p style="font-size:11px;color:rgba(245,237,216,0.25);margin-top:8px;letter-spacing:1px;font-family:'Cinzel',serif;">MOVE YOUR PHONE TO EXPLORE</p>
+  </div>
+</div>
+
+<!-- Three.js r128 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ── CONFIG ──
+const creatures = {
+  garuda: {
+    name: 'Garuda',
+    mantra: 'ॐ विष्णवे नमः',
+    color: 0xC9A84C,
+    wingColor: 0x8B4513,
+    scale: 1.8,
+    description: 'Vehicle of Vishnu',
+    audioFreq: [174, 285, 396],
+    emoji: '🦅'
+  },
+  nandi: {
+    name: 'Nandi',
+    mantra: 'ॐ नमः शिवाय',
+    color: 0xF5F5DC,
+    wingColor: 0xD4A853,
+    scale: 2.2,
+    description: 'Sacred Bull of Shiva',
+    audioFreq: [528, 432, 639],
+    emoji: '🐂'
+  },
+  airavata: {
+    name: 'Airavata',
+    mantra: 'ॐ ऐं इन्द्राय नमः',
+    color: 0xE8E8FF,
+    wingColor: 0x9999DD,
+    scale: 2.5,
+    description: 'Divine Elephant of Indra',
+    audioFreq: [396, 528, 741],
+    emoji: '🐘'
+  }
+};
+
+let selectedCreature = 'garuda';
+let scene, camera, renderer, creature3D;
+let audioCtx, audioNodes = [], audioMuted = false;
+let clock, mixer, animTime = 0;
+let deviceOrientation = { alpha: 0, beta: 45, gamma: 0 };
+let mouseX = 0, mouseY = 0;
+let isDesktop = false;
+let cameraStream = null;
+
+// ── PARTICLES (splash bg) ──
+(function initParticles() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let W = canvas.width = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+  const particles = Array.from({length: 60}, () => ({
+    x: Math.random()*W, y: Math.random()*H,
+    vx: (Math.random()-.5)*0.3, vy: -Math.random()*0.4-0.1,
+    size: Math.random()*2+0.5,
+    alpha: Math.random()*0.4+0.1,
+    color: Math.random() > 0.5 ? '201,168,76' : '255,107,26'
+  }));
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.y < -5) { p.y = H+5; p.x = Math.random()*W; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+  window.addEventListener('resize', () => {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  });
+})();
+
+// ── SELECTION ──
+function selectCreature(btn) {
+  document.querySelectorAll('.creature-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedCreature = btn.dataset.creature;
+}
+
+// ── START ──
+function startAR() {
+  document.getElementById('splash').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('splash').style.display = 'none';
+    // check if mobile
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+      showPermScreen();
+    } else {
+      // Desktop — show choice
+      showPermScreen();
+    }
+  }, 800);
+}
+
+function showPermScreen() {
+  document.getElementById('perm-screen').style.display = 'flex';
+}
+
+function requestCamera() {
+  document.getElementById('perm-screen').style.display = 'none';
+  showLoading('Opening camera...');
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+    .then(stream => {
+      cameraStream = stream;
+      document.getElementById('cam-feed').srcObject = stream;
+      isDesktop = false;
+      initThreeScene();
+      initAudio();
+      showAR();
+    })
+    .catch(() => {
+      // fallback to desktop
+      runDesktopMode();
+    });
+}
+
+function runDesktopMode() {
+  document.getElementById('perm-screen').style.display = 'none';
+  isDesktop = true;
+  document.getElementById('cam-feed').style.display = 'none';
+  document.getElementById('ar-container').style.background = 'radial-gradient(ellipse at 40% 60%, #0d1a10 0%, #060a08 60%, #030305 100%)';
+  showLoading('Summoning into realm...');
+  initThreeScene();
+  initAudio();
+  showAR();
+}
+
+function showLoading(msg) {
+  document.getElementById('load-msg').textContent = msg;
+  document.getElementById('loading').style.display = 'flex';
+}
+
+function hideLoading() {
+  document.getElementById('loading').style.display = 'none';
+}
+
+// ── THREE.JS SCENE ──
+function initThreeScene() {
+  const canvas = document.getElementById('three-canvas');
+  const W = window.innerWidth, H = window.innerHeight;
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(70, W/H, 0.01, 100);
+  camera.position.set(0, 1.6, 0);
+
+  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0xffd4a0, 0.6);
+  scene.add(ambient);
+
+  const sun = new THREE.DirectionalLight(0xffd080, 1.2);
+  sun.position.set(5, 8, 3);
+  sun.castShadow = true;
+  scene.add(sun);
+
+  const fill = new THREE.PointLight(0xC9A84C, 0.8, 20);
+  fill.position.set(-3, 3, -3);
+  scene.add(fill);
+
+  // Particle aura around creature
+  const auraParts = createAuraParticles();
+  scene.add(auraParts);
+
+  // Build creature
+  creature3D = buildCreature(selectedCreature);
+  scene.add(creature3D);
+
+  // Ground plane (semi-transparent for shadow)
+  const groundGeo = new THREE.CircleGeometry(3, 64);
+  const groundMat = new THREE.MeshStandardMaterial({
+    color: 0xC9A84C,
+    transparent: true,
+    opacity: 0.08,
+    side: THREE.DoubleSide
+  });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI/2;
+  ground.position.y = 0;
+  scene.add(ground);
+
+  // Magic circle
+  const circleGroup = createMagicCircle();
+  scene.add(circleGroup);
+
+  clock = new THREE.Clock();
+
+  // Device orientation for mobile
+  if (window.DeviceOrientationEvent) {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          window.addEventListener('deviceorientation', onOrientation);
+        }
+      }).catch(() => {});
+    } else {
+      window.addEventListener('deviceorientation', onOrientation);
+    }
+  }
+
+  // Mouse for desktop
+  window.addEventListener('mousemove', e => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  window.addEventListener('resize', () => {
+    const W = window.innerWidth, H = window.innerHeight;
+    camera.aspect = W/H;
+    camera.updateProjectionMatrix();
+    renderer.setSize(W, H);
+  });
+
+  animate();
+}
+
+function onOrientation(e) {
+  deviceOrientation.alpha = e.alpha || 0;
+  deviceOrientation.beta  = e.beta  || 45;
+  deviceOrientation.gamma = e.gamma || 0;
+}
+
+// ── BUILD CREATURE ──
+function buildCreature(type) {
+  const cfg = creatures[type];
+  const group = new THREE.Group();
+
+  if (type === 'garuda') {
+    group.add(buildGaruda(cfg));
+  } else if (type === 'nandi') {
+    group.add(buildNandi(cfg));
+  } else {
+    group.add(buildAiravata(cfg));
+  }
+
+  group.position.set(0, 0, -4);
+  group.scale.setScalar(cfg.scale);
+  return group;
+}
+
+function buildGaruda(cfg) {
+  const g = new THREE.Group();
+  const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.4, metalness: 0.3 });
+
+  // Body
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), mat(cfg.color));
+  body.scale.set(1, 1.3, 0.8);
+  body.position.y = 0.5;
+  g.add(body);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), mat(cfg.color));
+  head.position.set(0, 1.1, 0.1);
+  g.add(head);
+
+  // Beak
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.3, 8), mat(0x8B6914));
+  beak.rotation.x = Math.PI/2;
+  beak.position.set(0, 1.1, 0.32);
+  g.add(beak);
+
+  // Eyes
+  [-0.08, 0.08].forEach(x => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), mat(0xFF4400));
+    eye.position.set(x, 1.15, 0.2);
+    g.add(eye);
+  });
+
+  // Wings (left & right)
+  function makeWing(sign) {
+    const wing = new THREE.Group();
+    // Upper wing
+    const upper = new THREE.Mesh(
+      new THREE.BoxGeometry(0.8, 0.08, 0.4),
+      mat(cfg.wingColor)
+    );
+    upper.position.set(sign*0.55, 0.6, 0);
+    upper.rotation.z = sign * 0.3;
+    wing.add(upper);
+    // Lower feathers
+    for (let i=0; i<5; i++) {
+      const f = new THREE.Mesh(
+        new THREE.BoxGeometry(0.15, 0.04, 0.25+i*0.04),
+        mat(i%2===0 ? cfg.wingColor : 0x4a2800)
+      );
+      f.position.set(sign*(0.3+i*0.15), 0.4-i*0.05, 0.05);
+      f.rotation.z = sign*(0.2+i*0.1);
+      wing.add(f);
+    }
+    return wing;
+  }
+  g.add(makeWing(1));
+  g.add(makeWing(-1));
+
+  // Tail
+  const tail = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.5, 8), mat(cfg.wingColor));
+  tail.rotation.x = -Math.PI/2 + 0.3;
+  tail.position.set(0, 0.3, -0.3);
+  g.add(tail);
+
+  // Crown / crest
+  for (let i=0; i<5; i++) {
+    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.15, 6), mat(0xFFD700));
+    spike.position.set((i-2)*0.05, 1.35, 0.05);
+    spike.rotation.z = (i-2)*0.15;
+    g.add(spike);
+  }
+
+  // Glow halo
+  const haloGeo = new THREE.RingGeometry(0.4, 0.45, 32);
+  const haloMat = new THREE.MeshBasicMaterial({ color: 0xFFD700, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+  const halo = new THREE.Mesh(haloGeo, haloMat);
+  halo.position.set(0, 1.3, 0);
+  halo.rotation.x = 0.3;
+  g.add(halo);
+  g.userData.halo = halo;
+
+  return g;
+}
+
+function buildNandi(cfg) {
+  const g = new THREE.Group();
+  const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.5, metalness: 0.1 });
+
+  // Body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.55, 1.2), mat(cfg.color));
+  body.position.y = 0.5;
+  g.add(body);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.4, 0.55), mat(cfg.color));
+  head.position.set(0, 0.8, 0.65);
+  g.add(head);
+
+  // Snout
+  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.2, 0.2), mat(0xDDD8C0));
+  snout.position.set(0, 0.7, 0.9);
+  g.add(snout);
+
+  // Horns
+  [-0.15, 0.15].forEach(x => {
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.35, 8), mat(0xD4A853));
+    horn.position.set(x, 1.1, 0.6);
+    horn.rotation.z = x > 0 ? -0.4 : 0.4;
+    g.add(horn);
+  });
+
+  // Hump
+  const hump = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), mat(cfg.color));
+  hump.scale.set(0.8, 1.2, 0.8);
+  hump.position.set(0, 0.85, -0.1);
+  g.add(hump);
+
+  // Legs
+  [[-0.28,-0.45],[-0.28,0.45],[0.28,-0.45],[0.28,0.45]].forEach(([x,z]) => {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.07, 0.55, 8), mat(cfg.color));
+    leg.position.set(x, 0.2, z);
+    g.add(leg);
+  });
+
+  // Sacred dot (tilak)
+  const tilak = new THREE.Mesh(new THREE.CircleGeometry(0.05, 16), new THREE.MeshBasicMaterial({color: 0xFF6600, side: THREE.DoubleSide}));
+  tilak.position.set(0, 0.92, 0.86);
+  g.add(tilak);
+
+  // Glow halo
+  const haloGeo = new THREE.RingGeometry(0.5, 0.55, 32);
+  const haloMat = new THREE.MeshBasicMaterial({ color: 0xFFD700, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+  const halo = new THREE.Mesh(haloGeo, haloMat);
+  halo.position.set(0, 1.1, 0.5);
+  halo.rotation.x = 0.5;
+  g.add(halo);
+  g.userData.halo = halo;
+
+  return g;
+}
+
+function buildAiravata(cfg) {
+  const g = new THREE.Group();
+  const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.3, metalness: 0.15 });
+
+  // Body
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 16), mat(cfg.color));
+  body.scale.set(1.2, 1, 1.5);
+  body.position.y = 0.6;
+  g.add(body);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), mat(cfg.color));
+  head.position.set(0, 0.9, 0.7);
+  g.add(head);
+
+  // Trunk
+  const trunk = new THREE.Group();
+  for (let i=0; i<6; i++) {
+    const seg = new THREE.Mesh(new THREE.SphereGeometry(0.1-i*0.01, 8, 8), mat(cfg.color));
+    seg.position.set(Math.sin(i*0.3)*0.05, 0.7-i*0.15, 0.85+i*0.05);
+    trunk.add(seg);
+  }
+  g.add(trunk);
+
+  // Ears
+  [-1,1].forEach(s => {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.25, 12, 12), mat(cfg.color));
+    ear.scale.set(0.3, 0.8, 0.8);
+    ear.position.set(s*0.5, 0.9, 0.55);
+    g.add(ear);
+  });
+
+  // Tusks
+  [-0.15, 0.15].forEach(x => {
+    const tusk = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.35, 8), mat(0xFFFAF0));
+    tusk.position.set(x, 0.7, 0.95);
+    tusk.rotation.x = -0.5;
+    tusk.rotation.z = x > 0 ? -0.2 : 0.2;
+    g.add(tusk);
+  });
+
+  // Legs
+  [[-0.35,-0.35],[-0.35,0.35],[0.35,-0.35],[0.35,0.35]].forEach(([x,z]) => {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.6, 10), mat(cfg.color));
+    leg.position.set(x, 0.22, z);
+    g.add(leg);
+  });
+
+  // Crown
+  const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.12, 16), mat(0xD4A853));
+  crown.position.set(0, 1.3, 0.65);
+  g.add(crown);
+  for (let i=0; i<8; i++) {
+    const a = (i/8)*Math.PI*2;
+    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.12, 6), mat(0xFFD700));
+    spike.position.set(0.2*Math.cos(a), 1.42, 0.65+0.2*Math.sin(a));
+    g.add(spike);
+  }
+
+  // Glow halo
+  const haloGeo = new THREE.RingGeometry(0.6, 0.65, 32);
+  const haloMat = new THREE.MeshBasicMaterial({ color: 0xAAAAAFF, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+  const halo = new THREE.Mesh(haloGeo, haloMat);
+  halo.position.set(0, 1.5, 0.5);
+  halo.rotation.x = 0.5;
+  g.add(halo);
+  g.userData.halo = halo;
+
+  return g;
+}
+
+// ── AURA PARTICLES ──
+function createAuraParticles() {
+  const count = 200;
+  const geo = new THREE.BufferGeometry();
+  const positions = new Float32Array(count*3);
+  const colors = new Float32Array(count*3);
+
+  for (let i=0; i<count; i++) {
+    const a = Math.random()*Math.PI*2;
+    const r = 0.8 + Math.random()*1.2;
+    positions[i*3]   = Math.cos(a)*r;
+    positions[i*3+1] = Math.random()*2.5;
+    positions[i*3+2] = Math.sin(a)*r - 4;
+
+    colors[i*3]   = 0.8 + Math.random()*0.2;
+    colors[i*3+1] = 0.65 + Math.random()*0.15;
+    colors[i*3+2] = 0.2 + Math.random()*0.2;
+  }
+
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const mat = new THREE.PointsMaterial({ size: 0.03, vertexColors: true, transparent: true, opacity: 0.7 });
+  return new THREE.Points(geo, mat);
+}
+
+// ── MAGIC CIRCLE ──
+function createMagicCircle() {
+  const group = new THREE.Group();
+  group.position.set(0, 0.01, -4);
+
+  [1.2, 1.5, 1.8].forEach((r, i) => {
+    const geo = new THREE.RingGeometry(r-0.01, r+0.01, 64);
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0xC9A84C,
+      transparent: true,
+      opacity: 0.15 + i*0.05,
+      side: THREE.DoubleSide
+    });
+    const ring = new THREE.Mesh(geo, mat);
+    ring.rotation.x = -Math.PI/2;
+    group.add(ring);
+  });
+
+  return group;
+}
+
+// ── AUDIO ──
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const cfg = creatures[selectedCreature];
+
+  // Create harmonic drone
+  cfg.audioFreq.forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const panner = audioCtx.createStereoPanner();
+    const filter = audioCtx.createBiquadFilter();
+
+    osc.type = i === 0 ? 'sine' : i === 1 ? 'triangle' : 'sine';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+    // Slow vibrato
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.frequency.value = 0.15 + i*0.07;
+    lfoGain.gain.value = 1.5;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start();
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.04 - i*0.01, audioCtx.currentTime + 2);
+
+    panner.pan.value = (i-1)*0.4;
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(panner);
+    panner.connect(audioCtx.destination);
+    osc.start();
+
+    audioNodes.push({ osc, gain, lfo });
+  });
+
+  // Bell / tingsha pulse every ~8s
+  scheduleBell();
+}
+
+function scheduleBell() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const bell = audioCtx.createOscillator();
+  const bellGain = audioCtx.createGain();
+  bell.type = 'sine';
+  bell.frequency.setValueAtTime(528, t);
+  bell.frequency.exponentialRampToValueAtTime(264, t+2);
+  bellGain.gain.setValueAtTime(0.12, t);
+  bellGain.gain.exponentialRampToValueAtTime(0.001, t+3);
+  bell.connect(bellGain);
+  bellGain.connect(audioCtx.destination);
+  bell.start(t);
+  bell.stop(t+3);
+  setTimeout(scheduleBell, 7000 + Math.random()*5000);
+}
+
+function toggleAudio() {
+  audioMuted = !audioMuted;
+  document.getElementById('audio-btn').textContent = audioMuted ? '🔇' : '🔊';
+  if (!audioCtx) return;
+  audioNodes.forEach(({gain}) => {
+    gain.gain.linearRampToValueAtTime(audioMuted ? 0 : 0.04, audioCtx.currentTime+0.5);
+  });
+}
+
+// ── SHOW AR ──
+function showAR() {
+  setTimeout(() => {
+    hideLoading();
+    document.getElementById('ar-container').style.display = 'block';
+    document.getElementById('hud').style.display = 'block';
+    const cfg = creatures[selectedCreature];
+    document.getElementById('hud-name').textContent = cfg.name;
+    document.getElementById('mantra-text').textContent = cfg.mantra;
+  }, 1200);
+}
+
+// ── ANIMATE ──
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  animTime += delta;
+
+  // Camera rotation from device / mouse
+  let targetX, targetY;
+  if (isDesktop) {
+    targetX = mouseX * 0.4;
+    targetY = -mouseY * 0.2;
+  } else {
+    targetX = ((deviceOrientation.gamma || 0) / 45) * 0.6;
+    targetY = (((deviceOrientation.beta || 45) - 45) / 30) * 0.4;
+  }
+
+  camera.rotation.y += (targetX - camera.rotation.y) * 0.05;
+  camera.rotation.x += (targetY - camera.rotation.x) * 0.05;
+
+  // Creature idle animation
+  if (creature3D) {
+    creature3D.position.y = Math.sin(animTime * 0.6) * 0.08;
+    creature3D.rotation.y = Math.sin(animTime * 0.3) * 0.15;
+
+    // Wing flap for Garuda
+    if (selectedCreature === 'garuda') {
+      creature3D.children[0]?.children?.forEach((child, i) => {
+        if (i > 5) child.rotation.z = Math.sin(animTime*2 + i) * 0.15;
+      });
+    }
+
+    // Trunk sway for Airavata
+    if (selectedCreature === 'airavata') {
+      const trunk = creature3D.children[0]?.children?.[3];
+      if (trunk) trunk.rotation.z = Math.sin(animTime*1.5)*0.2;
+    }
+
+    // Halo pulse
+    const halo = creature3D.children[0]?.userData?.halo;
+    if (halo) {
+      halo.material.opacity = 0.25 + Math.sin(animTime*2)*0.15;
+      halo.rotation.z += delta*0.5;
+    }
+  }
+
+  renderer.render(scene, camera);
+}
+
+// Resume audio context on interaction
+document.addEventListener('touchstart', () => {
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}, { once: true });
+
+document.addEventListener('click', () => {
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}, { once: true });
+</script>
+</body>
+</html>
