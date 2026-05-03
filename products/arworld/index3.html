@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>Devlok AR — Temple Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Yatra+One&family=Philosopher:ital,wght@0,400;0,700;1,400&family=Noto+Sans+Devanagari:wght@300;400;600&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0c0806;--stone:#1a130d;--sandstone:#c8a96e;--gold:#e8c97a;
+  --saffron:#e85d04;--crimson:#9b1d20;--cream:#f5edd8;--ash:#8a7560;
+  --glow:rgba(232,201,122,.18);
+}
+html,body{height:100%;overflow:hidden;background:var(--ink);touch-action:none}
+body{font-family:'Philosopher',Georgia,serif;color:var(--cream)}
+
+/* ══════════════════════════════════════════
+   SPLASH — Temple gate aesthetic
+══════════════════════════════════════════ */
+#splash{
+  position:fixed;inset:0;z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  overflow-y:auto;padding-bottom:40px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,120,20,.22) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 110%, rgba(155,29,32,.18) 0%, transparent 70%),
+    #0c0806;
+  transition:opacity .9s ease;
+}
+
+/* Stone texture overlay */
+#splash::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+  opacity:.6;
+}
+
+/* Temple gopuram arch top */
+.gopuram{
+  width:100%;max-width:420px;height:120px;position:relative;margin-bottom:-2px;
+  flex-shrink:0;margin-top:0;
+}
+.gopuram svg{width:100%;height:100%}
+
+.splash-inner{
+  width:100%;max-width:380px;padding:0 20px;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;z-index:2;
+}
+
+/* Big Sanskrit Om */
+.om-wrap{text-align:center;margin-bottom:4px}
+.om-char{
+  font-family:'Noto Sans Devanagari',serif;font-size:88px;font-weight:600;
+  color:var(--gold);line-height:1;
+  filter:drop-shadow(0 0 30px rgba(232,201,122,.5)) drop-shadow(0 0 80px rgba(232,100,4,.25));
+  animation:om-pulse 4s ease-in-out infinite;
+}
+@keyframes om-pulse{
+  0%,100%{filter:drop-shadow(0 0 20px rgba(232,201,122,.4)) drop-shadow(0 0 50px rgba(232,100,4,.15))}
+  50%{filter:drop-shadow(0 0 45px rgba(232,201,122,.8)) drop-shadow(0 0 100px rgba(232,100,4,.4)) drop-shadow(0 0 160px rgba(200,80,0,.2))}
+}
+
+.temple-title{
+  font-family:'Yatra One',serif;font-size:32px;color:var(--gold);
+  letter-spacing:4px;text-align:center;margin-bottom:2px;
+  text-shadow:0 2px 20px rgba(232,201,122,.3);
+}
+.temple-sub{
+  font-size:12px;font-style:italic;color:var(--ash);letter-spacing:3px;
+  text-align:center;margin-bottom:16px;
+}
+
+/* Decorative horizontal rule — temple border */
+.mandir-rule{
+  width:100%;display:flex;align-items:center;gap:8px;margin:8px 0 20px;
+}
+.mandir-rule .line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--sandstone),transparent)}
+.mandir-rule .lotus{font-size:14px;color:var(--sandstone);opacity:.8}
+
+/* CREATURE GRID */
+.section-label{
+  font-family:'Yatra One',serif;font-size:11px;letter-spacing:3px;
+  color:var(--ash);text-transform:uppercase;margin-bottom:10px;align-self:flex-start;
+}
+.creature-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  width:100%;margin-bottom:20px;
+}
+.cc{
+  background:linear-gradient(145deg,rgba(200,169,110,.07),rgba(200,169,110,.02));
+  border:1px solid rgba(200,169,110,.18);border-radius:12px;
+  padding:10px 4px 8px;cursor:pointer;transition:all .2s;text-align:center;
+  position:relative;overflow:hidden;
+}
+.cc::after{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background:radial-gradient(ellipse at 50% -20%,rgba(232,201,122,.14),transparent 70%);
+  opacity:0;transition:.25s;
+}
+.cc:hover::after,.cc.sel::after{opacity:1}
+.cc.sel{border-color:rgba(232,201,122,.55);box-shadow:0 0 16px rgba(232,201,122,.15),inset 0 0 12px rgba(232,201,122,.04)}
+.cc-emoji{font-size:26px;display:block;margin-bottom:4px}
+.cc-name{font-family:'Yatra One',serif;font-size:9px;color:var(--gold);letter-spacing:1px}
+.cc-tag{font-size:8px;color:rgba(245,237,216,.3);font-style:italic;margin-top:1px}
+.cc-badge{
+  position:absolute;top:4px;right:4px;font-size:7px;
+  background:rgba(232,100,4,.7);color:#fff;border-radius:20px;padding:1px 5px;
+  font-family:'Philosopher',serif;letter-spacing:.5px;
+}
+
+/* CUSTOM URL */
+.input-group{width:100%;margin-bottom:18px}
+.input-label{font-size:10px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;display:block;margin-bottom:5px}
+.glb-input{
+  width:100%;background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.2);
+  border-radius:8px;padding:10px 14px;color:var(--cream);
+  font-family:'Philosopher',serif;font-size:12px;outline:none;
+  transition:border-color .2s;
+}
+.glb-input:focus{border-color:rgba(232,201,122,.5)}
+.glb-input::placeholder{color:rgba(245,237,216,.2)}
+
+/* CTA button */
+.enter-btn{
+  width:100%;max-width:280px;
+  font-family:'Yatra One',serif;font-size:15px;letter-spacing:3px;
+  background:linear-gradient(135deg,#c8940a,#e85d04);
+  border:none;border-radius:40px;padding:15px 0;
+  color:#0c0806;cursor:pointer;
+  box-shadow:0 4px 30px rgba(232,100,4,.4),0 0 0 1px rgba(232,201,122,.2);
+  transition:all .25s;margin-bottom:10px;
+}
+.enter-btn:hover{transform:translateY(-2px);box-shadow:0 8px 50px rgba(232,100,4,.6),0 0 0 1px rgba(232,201,122,.4)}
+
+.help-link{
+  font-size:10px;color:rgba(200,169,110,.45);cursor:pointer;
+  letter-spacing:1px;text-decoration:underline dotted;text-align:center;
+}
+
+/* ══════════════════════════════════════════
+   PERMISSION / LOADING
+══════════════════════════════════════════ */
+#perm{
+  position:fixed;inset:0;z-index:150;background:var(--ink);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;padding:40px;text-align:center;
+}
+#perm .perm-icon{font-size:60px;margin-bottom:4px}
+#perm h2{font-family:'Yatra One',serif;font-size:22px;color:var(--gold)}
+#perm p{font-size:13px;color:var(--ash);line-height:1.7;max-width:260px}
+.btn-pri{
+  font-family:'Yatra One',serif;font-size:12px;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--sandstone),var(--saffron));
+  border:none;border-radius:40px;padding:13px 32px;color:var(--ink);
+  cursor:pointer;width:100%;max-width:260px;margin-bottom:8px;transition:all .2s;
+}
+.btn-sec{
+  font-family:'Philosopher',serif;font-size:11px;letter-spacing:2px;
+  background:transparent;border:1px solid rgba(200,169,110,.25);
+  border-radius:40px;padding:11px 32px;color:var(--ash);
+  cursor:pointer;width:100%;max-width:260px;transition:all .2s;
+}
+
+#loading{
+  position:fixed;inset:0;z-index:200;background:var(--ink);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+}
+.load-mandala{
+  width:70px;height:70px;position:relative;
+}
+.load-mandala::before,.load-mandala::after{
+  content:'';position:absolute;border-radius:50%;border:1.5px solid transparent;
+}
+.load-mandala::before{inset:0;border-top-color:var(--gold);animation:spin 1.2s linear infinite}
+.load-mandala::after{inset:9px;border-top-color:var(--saffron);animation:spin .8s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-pct{font-family:'Yatra One',serif;font-size:30px;color:var(--gold)}
+.load-msg{font-size:11px;letter-spacing:3px;color:var(--ash);text-transform:uppercase;text-align:center;padding:0 20px}
+
+/* ══════════════════════════════════════════
+   AR CANVAS
+══════════════════════════════════════════ */
+#ar-wrap{position:fixed;inset:0;display:none}
+video#feed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+canvas#tc{position:absolute;inset:0;z-index:1;width:100%!important;height:100%!important}
+
+/* ══════════════════════════════════════════
+   HUD
+══════════════════════════════════════════ */
+#hud{position:fixed;inset:0;z-index:50;pointer-events:none;display:none}
+
+/* Corner ornaments (temple-style) */
+.corner-piece{position:absolute;width:28px;height:28px}
+.corner-piece svg{width:100%;height:100%}
+.cp-tl{top:12px;left:12px}
+.cp-tr{top:12px;right:12px;transform:scaleX(-1)}
+.cp-bl{bottom:12px;left:12px;transform:scaleY(-1)}
+.cp-br{bottom:12px;right:12px;transform:scale(-1)}
+
+.hud-top{
+  position:absolute;top:0;left:0;right:0;
+  padding:16px 16px 0;display:flex;justify-content:space-between;align-items:flex-start;
+}
+.hud-creature-info{display:flex;flex-direction:column;gap:1px;padding-left:32px}
+.hcn{font-family:'Yatra One',serif;font-size:18px;color:var(--gold);text-shadow:0 0 20px rgba(232,201,122,.5)}
+.hcs{font-size:10px;font-style:italic;color:rgba(245,237,216,.4);letter-spacing:.5px}
+
+.hud-controls{display:flex;flex-direction:column;gap:6px;pointer-events:all;padding-right:4px}
+.hbtn{
+  background:rgba(12,8,6,.6);border:1px solid rgba(200,169,110,.3);border-radius:10px;
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;backdrop-filter:blur(12px);transition:all .2s;
+}
+.hbtn:hover{border-color:var(--gold);background:rgba(232,201,122,.1)}
+.hbtn.active{border-color:var(--saffron);background:rgba(232,100,4,.15)}
+
+/* Scale controls */
+.scale-strip{
+  position:absolute;right:68px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:all;
+}
+.scale-btn{
+  background:rgba(12,8,6,.65);border:1px solid rgba(200,169,110,.28);
+  border-radius:8px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:20px;font-weight:300;color:var(--gold);backdrop-filter:blur(12px);
+  transition:all .2s;user-select:none;-webkit-user-select:none;
+}
+.scale-btn:active{background:rgba(232,201,122,.12);transform:scale(.95)}
+
+.hud-bottom{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:0 16px 28px;display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.mantra-display{
+  font-family:'Noto Sans Devanagari',serif;font-size:15px;font-weight:300;
+  color:rgba(232,201,122,.85);letter-spacing:2px;
+  text-shadow:0 0 15px rgba(232,201,122,.3),0 2px 8px rgba(0,0,0,.9);
+  animation:mbreath 7s ease-in-out infinite;text-align:center;
+}
+@keyframes mbreath{0%,100%{opacity:.4;transform:translateY(3px)}50%{opacity:1;transform:translateY(0)}}
+.tap-hint{
+  font-size:10px;letter-spacing:2px;color:rgba(245,237,216,.18);
+  font-family:'Philosopher',serif;text-align:center;
+}
+
+/* Crosshair */
+.crosshair{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:32px;height:32px;
+}
+.crosshair::before,.crosshair::after{content:'';position:absolute;background:rgba(232,201,122,.35)}
+.crosshair::before{width:1px;height:100%;left:50%}
+.crosshair::after{height:1px;width:100%;top:50%}
+.ch-dot{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:5px;height:5px;border-radius:50%;background:rgba(232,201,122,.7);
+  animation:chdot 2s ease-in-out infinite;
+}
+@keyframes chdot{0%,100%{opacity:.5}50%{opacity:1;box-shadow:0 0 8px rgba(232,201,122,.8)}}
+
+/* ══════════════════════════════════════════
+   ANIMATION BAR
+══════════════════════════════════════════ */
+#anim-bar{
+  position:fixed;bottom:76px;left:50%;transform:translateX(-50%);
+  z-index:60;display:none;gap:6px;flex-wrap:wrap;justify-content:center;
+  max-width:340px;pointer-events:all;padding:0 16px;
+}
+.ab{
+  font-family:'Philosopher',serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  background:rgba(12,8,6,.72);border:1px solid rgba(200,169,110,.25);
+  border-radius:20px;padding:6px 13px;color:var(--ash);cursor:pointer;
+  backdrop-filter:blur(10px);transition:all .2s;
+}
+.ab:hover,.ab.on{border-color:var(--gold);color:var(--gold);background:rgba(232,201,122,.07)}
+
+/* ══════════════════════════════════════════
+   LORE PANEL
+══════════════════════════════════════════ */
+#lore{
+  position:fixed;bottom:0;left:0;right:0;z-index:80;
+  background:linear-gradient(180deg,rgba(12,8,6,.0) 0%,rgba(12,8,6,.97) 30px);
+  backdrop-filter:blur(16px);
+  border-top:1px solid rgba(200,169,110,.15);
+  border-radius:20px 20px 0 0;
+  padding:20px 20px 36px;
+  transform:translateY(100%);transition:transform .4s cubic-bezier(.32,.72,0,1);
+  pointer-events:all;max-height:55vh;overflow-y:auto;
+}
+#lore.open{transform:translateY(0)}
+.lore-handle{width:36px;height:3px;background:rgba(200,169,110,.3);border-radius:2px;margin:0 auto 16px}
+.lore-creature-name{font-family:'Yatra One',serif;font-size:20px;color:var(--gold);margin-bottom:3px}
+.lore-sub{font-size:11px;font-style:italic;color:var(--ash);margin-bottom:12px;letter-spacing:.5px}
+.lore-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(200,169,110,.25),transparent);margin:10px 0}
+.lore-text{font-size:13px;color:rgba(245,237,216,.65);line-height:1.8}
+.lore-mantra-big{font-family:'Noto Sans Devanagari',serif;font-size:18px;color:var(--gold);text-align:center;margin:14px 0;opacity:.9}
+.lore-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.lore-fact{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.12);border-radius:8px;padding:8px 10px}
+.lore-fact-label{font-size:9px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;margin-bottom:2px}
+.lore-fact-value{font-size:12px;color:var(--cream)}
+.lore-close{
+  position:absolute;top:16px;right:16px;background:transparent;
+  border:1px solid rgba(200,169,110,.2);border-radius:50%;
+  width:30px;height:30px;color:var(--ash);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ══════════════════════════════════════════
+   AR SCAN OVERLAY
+══════════════════════════════════════════ */
+#scan-overlay{
+  position:fixed;inset:0;z-index:70;pointer-events:none;display:none;
+}
+.scan-frame{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);
+  width:220px;height:220px;
+}
+.scan-corner{position:absolute;width:24px;height:24px;border-color:rgba(0,230,140,.8);border-style:solid;border-width:0}
+.sc-tl{top:0;left:0;border-top-width:2px;border-left-width:2px}
+.sc-tr{top:0;right:0;border-top-width:2px;border-right-width:2px}
+.sc-bl{bottom:0;left:0;border-bottom-width:2px;border-left-width:2px}
+.sc-br{bottom:0;right:0;border-bottom-width:2px;border-right-width:2px}
+.scan-line-el{
+  position:absolute;left:0;right:0;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(0,230,140,.9),transparent);
+  top:0;animation:scanmove 2.2s ease-in-out infinite;
+}
+@keyframes scanmove{0%{top:4px;opacity:.4}50%{opacity:1}100%{top:calc(100% - 4px);opacity:.4}}
+.scan-label{
+  position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);
+  font-family:'Philosopher',serif;font-size:10px;letter-spacing:2px;
+  color:rgba(0,230,140,.8);white-space:nowrap;
+}
+
+/* Scan result card */
+#scan-result{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:75;background:rgba(12,8,6,.92);border:1px solid rgba(200,169,110,.25);
+  border-radius:16px;padding:20px;width:280px;
+  backdrop-filter:blur(20px);display:none;
+  animation:cardfade .4s ease;
+}
+@keyframes cardfade{from{opacity:0;transform:translate(-50%,-50%) scale(.9)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.sr-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.sr-title{font-family:'Yatra One',serif;font-size:16px;color:var(--gold)}
+.sr-badge{font-size:9px;background:rgba(0,200,120,.2);color:rgba(0,230,140,1);border:1px solid rgba(0,200,120,.3);border-radius:20px;padding:2px 8px;letter-spacing:1px}
+.sr-body{font-size:12px;color:rgba(245,237,216,.6);line-height:1.65;margin-bottom:12px}
+.sr-actions{display:flex;gap:8px;flex-wrap:wrap}
+.sr-btn{
+  font-family:'Philosopher',serif;font-size:10px;letter-spacing:1px;
+  background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);
+  border-radius:20px;padding:6px 12px;color:var(--gold);cursor:pointer;transition:all .2s;
+}
+.sr-btn:hover{background:rgba(200,169,110,.15);border-color:rgba(200,169,110,.5)}
+.sr-close{
+  background:transparent;border:1px solid rgba(200,169,110,.2);border-radius:50%;
+  width:26px;height:26px;color:var(--ash);font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+
+/* ══════════════════════════════════════════
+   TOAST / ERRORS
+══════════════════════════════════════════ */
+#toast{
+  position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  z-index:300;background:rgba(155,29,32,.92);border:1px solid rgba(255,120,120,.3);
+  border-radius:12px;padding:10px 18px;font-size:12px;color:#fff;text-align:center;
+  display:none;max-width:300px;backdrop-filter:blur(12px);line-height:1.5;
+}
+#toast.info{background:rgba(20,60,30,.92);border-color:rgba(0,200,120,.3)}
+
+/* GUIDE */
+#guide{
+  position:fixed;inset:0;z-index:250;background:rgba(12,8,6,.97);
+  display:none;flex-direction:column;overflow-y:auto;padding:24px 20px 50px;
+}
+#guide h2{font-family:'Yatra One',serif;font-size:20px;color:var(--gold);margin-bottom:16px}
+.g-close{
+  align-self:flex-end;background:transparent;border:1px solid rgba(200,169,110,.25);
+  color:var(--ash);border-radius:50%;width:34px;height:34px;font-size:16px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:12px;
+}
+.g-sec{margin-bottom:22px}
+.g-sec h3{font-family:'Yatra One',serif;font-size:13px;letter-spacing:1px;color:var(--sandstone);
+  margin-bottom:8px;border-bottom:1px solid rgba(200,169,110,.1);padding-bottom:5px}
+.g-sec p,.g-sec li{font-size:13px;color:rgba(245,237,216,.6);line-height:1.7;margin-bottom:5px}
+.g-sec li{margin-left:16px;list-style:disc}
+.g-sec a{color:rgba(120,200,255,.8);text-decoration:underline}
+.code{background:rgba(255,255,255,.04);border:1px solid rgba(200,169,110,.12);border-radius:7px;
+  padding:10px;font-family:monospace;font-size:11px;color:rgba(245,237,216,.5);
+  line-height:1.7;margin:6px 0;word-break:break-all}
+.pill{display:inline-block;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.2);
+  border-radius:20px;padding:2px 9px;font-size:10px;color:var(--sandstone);margin:2px}
+</style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══════════════════════════════════════════════════════ -->
+<div id="splash">
+  <!-- Temple gopuram SVG arch -->
+  <div class="gopuram">
+    <svg viewBox="0 0 420 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="g1" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#c8940a" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#c8940a" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Main arch -->
+      <path d="M0 120 L0 60 Q210 -30 420 60 L420 120 Z" fill="url(#g1)"/>
+      <!-- Arch stroke -->
+      <path d="M0 60 Q210 -30 420 60" stroke="#c8940a" stroke-width="1" fill="none" opacity=".4"/>
+      <!-- Stacked temple tiers -->
+      <rect x="155" y="0" width="110" height="8" rx="2" fill="rgba(200,140,10,.3)"/>
+      <rect x="165" y="8" width="90" height="7" rx="2" fill="rgba(200,140,10,.25)"/>
+      <rect x="175" y="15" width="70" height="6" rx="2" fill="rgba(200,140,10,.2)"/>
+      <rect x="183" y="21" width="54" height="5" rx="2" fill="rgba(200,140,10,.15)"/>
+      <rect x="190" y="26" width="40" height="4" rx="2" fill="rgba(200,140,10,.12)"/>
+      <!-- Kalash (pot) at top -->
+      <ellipse cx="210" cy="5" rx="8" ry="5" fill="rgba(232,201,122,.5)"/>
+      <line x1="210" y1="0" x2="210" y2="-8" stroke="rgba(232,201,122,.6)" stroke-width="2"/>
+      <!-- Decorative dots on arch -->
+      <circle cx="210" cy="3" r="2" fill="rgba(232,201,122,.7)"/>
+      <circle cx="130" cy="56" r="3" fill="rgba(200,140,10,.4)"/>
+      <circle cx="290" cy="56" r="3" fill="rgba(200,140,10,.4)"/>
+      <circle cx="80" cy="78" r="2" fill="rgba(200,140,10,.25)"/>
+      <circle cx="340" cy="78" r="2" fill="rgba(200,140,10,.25)"/>
+      <!-- Pillars suggestion -->
+      <rect x="20" y="70" width="6" height="50" fill="rgba(200,140,10,.15)" rx="3"/>
+      <rect x="394" y="70" width="6" height="50" fill="rgba(200,140,10,.15)" rx="3"/>
+    </svg>
+  </div>
+
+  <div class="splash-inner">
+    <div class="om-wrap"><span class="om-char">ॐ</span></div>
+    <h1 class="temple-title">DEVLOK AR</h1>
+    <p class="temple-sub">Sacred Beings · Temple & Museum Guide</p>
+
+    <div class="mandir-rule">
+      <div class="line"></div><span class="lotus">❋</span><div class="line"></div>
+      <span class="lotus">🪷</span><div class="line"></div><span class="lotus">❋</span><div class="line"></div>
+    </div>
+
+    <p class="section-label">Choose Your Sacred Being</p>
+    <div class="creature-grid">
+      <div class="cc sel" data-url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb"
+           data-name="Vahana Fox" data-mantra="ॐ नमः शिवाय" data-sub="Spirit messenger"
+           data-lore="The divine fox is a sacred messenger, revered as the vehicle of certain forest deities across Hindu, Buddhist and Shinto traditions. Foxes are said to carry prayers between the mortal and divine realms."
+           data-temple="Forest shrines" data-era="Timeless" onclick="pick(this)">
+        <span class="cc-emoji">🦊</span>
+        <div class="cc-name">Vahana</div>
+        <div class="cc-tag">Animated</div>
+        <div class="cc-badge">LIVE</div>
+      </div>
+      <div class="cc" data-url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/CesiumMan/glTF-Binary/CesiumMan.glb"
+           data-name="Divine Guard" data-mantra="ॐ विष्णवे नमः" data-sub="Temple protector"
+           data-lore="The guardian figure stands eternal watch at the threshold of sacred temples. Known as Dvarapalaka in Sanskrit, these guardians ward off negative forces and welcome true devotees with their powerful presence."
+           data-temple="Vishnu temples" data-era="Gupta period" onclick="pick(this)">
+        <span class="cc-emoji">🛡️</span>
+        <div class="cc-name">Dvarapala</div>
+        <div class="cc-tag">Walking</div>
+      </div>
+      <div class="cc" data-url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Duck/glTF-Binary/Duck.glb"
+           data-name="Hamsa" data-mantra="ॐ हंसाय नमः" data-sub="Vehicle of Brahma"
+           data-lore="The Hamsa or sacred swan is the vehicle of Lord Brahma and Saraswati. It symbolises wisdom and discernment — the ability to separate milk from water, truth from illusion. Its white feathers represent purity of thought."
+           data-temple="Brahma temples" data-era="Vedic" onclick="pick(this)">
+        <span class="cc-emoji">🦢</span>
+        <div class="cc-name">Hamsa</div>
+        <div class="cc-tag">Static</div>
+      </div>
+      <div class="cc" data-url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/BrainStem/glTF-Binary/BrainStem.glb"
+           data-name="Cosmic Form" data-mantra="ॐ नमो नारायण" data-sub="Virat Swaroop"
+           data-lore="The Virat Swaroop — the Universal Form — was revealed by Lord Krishna to Arjuna on the battlefield of Kurukshetra. In it, all of creation, all beings, all time itself was visible in a single cosmic vision described in the Bhagavad Gita."
+           data-temple="All temples" data-era="Dvapara Yuga" onclick="pick(this)">
+        <span class="cc-emoji">🌌</span>
+        <div class="cc-name">Virat Form</div>
+        <div class="cc-tag">Animated</div>
+      </div>
+      <div class="cc" data-url="" data-name="Lord Hanuman" data-mantra="ॐ हनुमते नमः" data-sub="Son of Vayu"
+           data-lore="Lord Hanuman is the embodiment of devotion, strength and selfless service. The son of Vayu, the wind god, he possesses the strength to move mountains and the wisdom of a great scholar. He is eternally present wherever the name of Rama is sung."
+           data-temple="Hanuman temples" data-era="Treta Yuga" onclick="pick(this)">
+        <span class="cc-emoji">🐒</span>
+        <div class="cc-name">Hanuman</div>
+        <div class="cc-tag">Custom GLB</div>
+      </div>
+      <div class="cc" data-url="" data-name="Lord Ganesha" data-mantra="ॐ गं गणपतये नमः" data-sub="Remover of obstacles"
+           data-lore="Lord Ganesha, the elephant-headed son of Shiva and Parvati, is worshipped first at the start of any endeavour. He is the lord of beginnings, the remover of obstacles, the patron of arts and sciences, and the deity of intellect and wisdom."
+           data-temple="All auspicious occasions" data-era="Eternal" onclick="pick(this)">
+        <span class="cc-emoji">🐘</span>
+        <div class="cc-name">Ganesha</div>
+        <div class="cc-tag">Custom GLB</div>
+      </div>
+      <div class="cc" data-url="" data-name="Goddess Durga" data-mantra="ॐ दुं दुर्गायै नमः" data-sub="Destroyer of evil"
+           data-lore="Goddess Durga is the fierce aspect of Shakti, riding a lion, bearing weapons in her ten hands, representing the combined power of all the devas. She defeated the buffalo demon Mahishasura and is worshipped during Navratri across India."
+           data-temple="Shakti peethas" data-era="Eternal" onclick="pick(this)">
+        <span class="cc-emoji">⚔️</span>
+        <div class="cc-name">Durga</div>
+        <div class="cc-tag">Custom GLB</div>
+      </div>
+      <div class="cc" data-url="custom" data-name="Custom Model" data-mantra="ॐ नमो नारायण" data-sub="Your own GLB"
+           data-lore="Load your own 3D model from Sketchfab, GitHub, or any public URL. Best results with models under 10MB. See the guide below for how to download free models."
+           data-temple="Any" data-era="Any" onclick="pick(this)">
+        <span class="cc-emoji">🔗</span>
+        <div class="cc-name">Custom</div>
+        <div class="cc-tag">Paste URL</div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Custom GLB / GLTF URL (optional)</label>
+      <input class="glb-input" id="custom-url" type="url"
+             placeholder="https://raw.githubusercontent.com/…/model.glb"
+             oninput="onCustomUrl()"/>
+    </div>
+
+    <button class="enter-btn" onclick="begin()">ENTER THE TEMPLE</button>
+    <p class="help-link" onclick="showGuide()">📖 How to get free models from Sketchfab</p>
+    <p style="font-size:10px;color:rgba(138,117,96,.35);margin-top:10px;text-align:center;letter-spacing:.5px">
+      Allow camera for AR · Desktop preview also available
+    </p>
+  </div>
+</div>
+
+<!-- PERM -->
+<div id="perm">
+  <div class="perm-icon">🏛️</div>
+  <h2>Open the Temple Gates</h2>
+  <p>Allow camera access so sacred beings can walk in your physical space.</p>
+  <button class="btn-pri" onclick="reqCam()">GRANT CAMERA ACCESS</button>
+  <button class="btn-sec" onclick="deskMode()">DESKTOP PREVIEW</button>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-mandala"></div>
+  <div class="load-pct" id="lpct">0%</div>
+  <p class="load-msg" id="ltxt">Summoning sacred being…</p>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- AR -->
+<div id="ar-wrap">
+  <video id="feed" autoplay playsinline muted></video>
+  <canvas id="tc"></canvas>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <!-- Temple corner ornaments -->
+  <div class="corner-piece cp-tl"><svg viewBox="0 0 28 28" fill="none">
+    <path d="M2 26 L2 8 Q2 2 8 2 L26 2" stroke="rgba(200,169,110,.5)" stroke-width="1.5" fill="none"/>
+    <circle cx="2" cy="2" r="2" fill="rgba(200,169,110,.4)"/>
+    <circle cx="8" cy="8" r="1.5" fill="rgba(200,169,110,.25)"/>
+  </svg></div>
+  <div class="corner-piece cp-tr"><svg viewBox="0 0 28 28" fill="none">
+    <path d="M2 26 L2 8 Q2 2 8 2 L26 2" stroke="rgba(200,169,110,.5)" stroke-width="1.5" fill="none"/>
+    <circle cx="2" cy="2" r="2" fill="rgba(200,169,110,.4)"/>
+  </svg></div>
+  <div class="corner-piece cp-bl"><svg viewBox="0 0 28 28" fill="none">
+    <path d="M2 26 L2 8 Q2 2 8 2 L26 2" stroke="rgba(200,169,110,.5)" stroke-width="1.5" fill="none"/>
+    <circle cx="2" cy="2" r="2" fill="rgba(200,169,110,.4)"/>
+  </svg></div>
+  <div class="corner-piece cp-br"><svg viewBox="0 0 28 28" fill="none">
+    <path d="M2 26 L2 8 Q2 2 8 2 L26 2" stroke="rgba(200,169,110,.5)" stroke-width="1.5" fill="none"/>
+    <circle cx="2" cy="2" r="2" fill="rgba(200,169,110,.4)"/>
+  </svg></div>
+
+  <div class="hud-top">
+    <div class="hud-creature-info">
+      <div class="hcn" id="hcn">Sacred Fox</div>
+      <div class="hcs" id="hcs">Spirit messenger</div>
+    </div>
+    <div class="hud-controls">
+      <div class="hbtn" id="abtn" onclick="toggleAudio()" title="Audio">🔊</div>
+      <div class="hbtn" id="scan-btn" onclick="toggleScan()" title="AR Scan">🔍</div>
+      <div class="hbtn" onclick="openLore()" title="Lore">📜</div>
+      <div class="hbtn" onclick="showGuide()" title="Guide">📖</div>
+    </div>
+  </div>
+
+  <!-- Scale controls -->
+  <div class="scale-strip">
+    <div class="scale-btn" onclick="scaleModel(1.15)" title="Scale up">＋</div>
+    <div class="scale-btn" onclick="scaleModel(0.87)" title="Scale down">－</div>
+    <div class="scale-btn" onclick="resetScale()" title="Reset" style="font-size:12px">↺</div>
+  </div>
+
+  <div class="crosshair"><div class="ch-dot"></div></div>
+
+  <div class="hud-bottom">
+    <div id="anim-bar"></div>
+    <div class="mantra-display" id="mtext">ॐ नमः शिवाय</div>
+    <div class="tap-hint" id="tap-hint">TAP FLOOR TO PLACE · PINCH TO SCALE</div>
+  </div>
+</div>
+
+<!-- LORE PANEL -->
+<div id="lore">
+  <div class="lore-handle"></div>
+  <button class="lore-close" onclick="closeLore()">✕</button>
+  <div class="lore-creature-name" id="ln"></div>
+  <div class="lore-sub" id="ls"></div>
+  <div class="lore-divider"></div>
+  <div class="lore-mantra-big" id="lm"></div>
+  <div class="lore-text" id="lt"></div>
+  <div class="lore-facts" id="lf"></div>
+</div>
+
+<!-- AR SCAN OVERLAY -->
+<div id="scan-overlay">
+  <div class="scan-frame">
+    <div class="scan-corner sc-tl"></div>
+    <div class="scan-corner sc-tr"></div>
+    <div class="scan-corner sc-bl"></div>
+    <div class="scan-corner sc-br"></div>
+    <div class="scan-line-el"></div>
+    <div class="scan-label">SCANNING FOR MARKERS</div>
+  </div>
+</div>
+
+<!-- SCAN RESULT CARD -->
+<div id="scan-result">
+  <div class="sr-header">
+    <div class="sr-title" id="sr-title"></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div class="sr-badge">SCANNED</div>
+      <button class="sr-close" onclick="closeScanResult()">✕</button>
+    </div>
+  </div>
+  <div class="sr-body" id="sr-body"></div>
+  <div class="sr-actions" id="sr-actions"></div>
+</div>
+
+<!-- GUIDE -->
+<div id="guide">
+  <button class="g-close" onclick="hideGuide()">✕</button>
+  <h2>Getting Free 3D Models</h2>
+  <div class="g-sec">
+    <h3>Sketchfab — Best source for Hindu deities</h3>
+    <ul>
+      <li>Go to <a href="https://sketchfab.com/search?q=hanuman&type=models&features=downloadable" target="_blank">sketchfab.com</a> and search for your deity</li>
+      <li>Filter by <strong>Downloadable</strong> and <strong>Free</strong></li>
+      <li>Click Download → choose <strong>Auto-converted glTF</strong></li>
+      <li>Unzip → find the <code style="color:#8cf">.glb</code> file inside</li>
+    </ul>
+    <div>
+      <span class="pill">hanuman</span><span class="pill">ganesha</span><span class="pill">shiva</span>
+      <span class="pill">krishna</span><span class="pill">garuda</span><span class="pill">nandi</span>
+      <span class="pill">durga</span><span class="pill">lakshmi</span>
+    </div>
+  </div>
+  <div class="g-sec">
+    <h3>Host your GLB (pick one)</h3>
+    <ul>
+      <li><strong>GitHub</strong> — push to repo, use raw URL</li>
+      <li><strong>Cloudflare R2</strong> — free 10GB, CORS auto-allowed</li>
+      <li><strong>Vercel /public</strong> — deploy as static site</li>
+    </ul>
+    <div class="code">https://raw.githubusercontent.com/YOU/REPO/main/hanuman.glb</div>
+  </div>
+  <div class="g-sec">
+    <h3>AI-generate a model in 2 min</h3>
+    <p>Use <a href="https://meshy.ai" target="_blank">Meshy.ai</a> (free) — type <em>"Lord Hanuman standing, Hindu deity, golden ornaments"</em> → download .glb → host on GitHub.</p>
+  </div>
+  <div class="g-sec">
+    <h3>Other free sources</h3>
+    <ul>
+      <li><a href="https://poly.pizza" target="_blank">poly.pizza</a> — CC0 low-poly</li>
+      <li><a href="https://polyhaven.com/models" target="_blank">polyhaven.com</a> — CC0 PBR quality</li>
+      <li><a href="https://kenney.nl/assets" target="_blank">kenney.nl</a> — CC0 game assets</li>
+    </ul>
+  </div>
+  <button class="enter-btn" onclick="hideGuide()" style="margin-top:8px">CLOSE GUIDE</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+const STATE = {
+  url:'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb',
+  name:'Vahana Fox', sub:'Spirit messenger',
+  mantra:'ॐ नमः शिवाय',
+  lore:'The divine fox is a sacred messenger, revered as the vehicle of certain forest deities across Hindu, Buddhist and Shinto traditions.',
+  temple:'Forest shrines', era:'Timeless'
+};
+
+let scene, cam, renderer, clock, raycaster;
+let modelGroup, mixer, animActions=[], floorPlane;
+let audioCtx, oscNodes=[], muted=false;
+let isDesk=false;
+let devBeta=45, devGamma=0;
+let mx=0, my=0, camX=0, camY=0, T=0;
+let currentScale=1.0;
+let scanActive=false, scanTimer=null;
+let touchStartDist=null;
+
+// Fake scan targets for demo (in real app these would come from QR/image recognition)
+const SCAN_TARGETS = [
+  { title:'Nataraja — 12th Century CE', body:'The dancing Shiva. This bronze Chola masterpiece depicts Shiva as the cosmic dancer, performing the Ananda Tandava within a ring of flames. His upper right hand holds a drum symbolising creation; the lower right grants protection; the upper left holds fire representing destruction.', actions:['Audio Guide','3D View','Share'] },
+  { title:'Gopuram — Eastern Tower', body:'This tower marks the eastern ceremonial entrance to the sanctum. Built in the Dravidian style, it rises 13 storeys and is adorned with over 1,200 stucco figures depicting scenes from the Puranas, painted in five sacred colours.', actions:['Floor Map','History','Audio'] },
+  { title:'Mahishasura Mardini', body:'Durga slaying the buffalo demon Mahisha. This 8th century basalt panel shows the goddess riding her lion, her 10 arms bearing divine weapons gifted by each of the gods. A masterwork of the Pallava period.', actions:['Zoom In','Full Story','Related'] },
+];
+
+// ═══════════════════════════════════════════
+//  PARTICLES BG
+// ═══════════════════════════════════════════
+(function(){
+  const c=document.createElement('canvas');
+  c.style.cssText='position:fixed;inset:0;z-index:1;pointer-events:none';
+  document.getElementById('splash').appendChild(c);
+  const ctx=c.getContext('2d');
+  let W=c.width=innerWidth,H=c.height=innerHeight;
+  const pts=Array.from({length:60},()=>({
+    x:Math.random()*W,y:Math.random()*H,
+    vx:(Math.random()-.5)*.2,vy:-Math.random()*.28-.04,
+    r:Math.random()*1.5+.3,a:Math.random()*.35+.05,
+    col:Math.random()>.6?'200,149,10':'232,93,4'
+  }));
+  (function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.y<-4){p.y=H+4;p.x=Math.random()*W}
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.col},${p.a})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+  addEventListener('resize',()=>{W=c.width=innerWidth;H=c.height=innerHeight});
+})();
+
+// ═══════════════════════════════════════════
+//  SPLASH INTERACTIONS
+// ═══════════════════════════════════════════
+function pick(el){
+  document.querySelectorAll('.cc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  STATE.url    = el.dataset.url==='custom'?'':el.dataset.url;
+  STATE.name   = el.dataset.name;
+  STATE.sub    = el.dataset.sub;
+  STATE.mantra = el.dataset.mantra;
+  STATE.lore   = el.dataset.lore;
+  STATE.temple = el.dataset.temple;
+  STATE.era    = el.dataset.era;
+  if(!STATE.url) document.getElementById('custom-url').focus();
+}
+function onCustomUrl(){
+  const v=document.getElementById('custom-url').value.trim();
+  if(v) STATE.url=v;
+}
+function begin(){
+  const custom=document.getElementById('custom-url').value.trim();
+  if(custom) STATE.url=custom;
+  const s=document.getElementById('splash');
+  s.style.opacity='0';
+  setTimeout(()=>{s.style.display='none';document.getElementById('perm').style.display='flex'},800);
+}
+
+// ═══════════════════════════════════════════
+//  CAMERA / PERMISSION
+// ═══════════════════════════════════════════
+function reqCam(){
+  document.getElementById('perm').style.display='none';
+  setLoad('Opening camera…',0);
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+    .then(stream=>{
+      document.getElementById('feed').srcObject=stream;
+      isDesk=false;launch();
+    })
+    .catch(()=>deskMode());
+}
+function deskMode(){
+  document.getElementById('perm').style.display='none';
+  isDesk=true;
+  document.getElementById('feed').style.display='none';
+  document.getElementById('ar-wrap').style.background=
+    'radial-gradient(ellipse at 35% 65%, #150e04 0%, #0c0806 80%)';
+  launch();
+}
+function launch(){setLoad('Preparing realm…',5);initThree();initAudio();loadModel(STATE.url);}
+
+function setLoad(msg,pct){
+  document.getElementById('ltxt').textContent=msg;
+  document.getElementById('lpct').textContent=Math.round(pct)+'%';
+  document.getElementById('loading').style.display='flex';
+}
+function hideLoad(){document.getElementById('loading').style.display='none';}
+
+function toast(msg,type='error'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=type;el.style.display='block';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',5000);
+}
+
+// ═══════════════════════════════════════════
+//  THREE.JS SCENE
+// ═══════════════════════════════════════════
+function initThree(){
+  const canvas=document.getElementById('tc');
+  const W=innerWidth,H=innerHeight;
+
+  scene=new THREE.Scene();
+  if(isDesk) scene.fog=new THREE.FogExp2(0x0c0806,.028);
+
+  cam=new THREE.PerspectiveCamera(65,W/H,.01,200);
+  cam.position.set(0,1.6,0);
+
+  raycaster=new THREE.Raycaster();
+
+  renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffd8b0,.55));
+  const sun=new THREE.DirectionalLight(0xfff5d0,1.6);
+  sun.position.set(5,12,4);sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.001;
+  sun.shadow.camera.near=.1;sun.shadow.camera.far=40;
+  sun.shadow.camera.left=-10;sun.shadow.camera.right=10;
+  sun.shadow.camera.top=10;sun.shadow.camera.bottom=-10;
+  scene.add(sun);
+  const rim=new THREE.DirectionalLight(0xff8822,.45);rim.position.set(-6,3,-6);scene.add(rim);
+  const fill=new THREE.HemisphereLight(0xffe0a0,0x112030,.4);scene.add(fill);
+
+  // Warm point light near creature
+  const glow=new THREE.PointLight(0xe8c97a,.9,12);glow.position.set(0,3,-4);scene.add(glow);
+
+  // FLOOR — invisible plane for raycasting
+  floorPlane=new THREE.Mesh(
+    new THREE.PlaneGeometry(40,40),
+    new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide})
+  );
+  floorPlane.rotation.x=-Math.PI/2;floorPlane.position.y=0;scene.add(floorPlane);
+
+  // Shadow blob
+  const shadow=new THREE.Mesh(
+    new THREE.CircleGeometry(.7,32),
+    new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.25,side:THREE.DoubleSide})
+  );
+  shadow.rotation.x=-Math.PI/2;shadow.position.set(0,.005,-4);
+  scene.add(shadow);
+  scene.userData.shadowBlob=shadow;
+
+  // Sacred ground rings
+  [.8,1.2,1.7,2.3].forEach((r,i)=>{
+    const ring=new THREE.Mesh(
+      new THREE.RingGeometry(r-.012,r+.012,64),
+      new THREE.MeshBasicMaterial({color:0xe8c97a,transparent:true,opacity:.06+i*.01,side:THREE.DoubleSide})
+    );
+    ring.rotation.x=-Math.PI/2;ring.position.set(0,.003,-4);scene.add(ring);
+    scene.userData['ring'+i]=ring;
+  });
+
+  // Ambient sparkles
+  const sGeo=new THREE.BufferGeometry();
+  const sPos=new Float32Array(500*3);
+  for(let i=0;i<500;i++){sPos[i*3]=(Math.random()-.5)*20;sPos[i*3+1]=Math.random()*7;sPos[i*3+2]=(Math.random()-.5)*20-3;}
+  sGeo.setAttribute('position',new THREE.BufferAttribute(sPos,3));
+  scene.add(new THREE.Points(sGeo,new THREE.PointsMaterial({size:.02,color:0xFFDD88,transparent:true,opacity:.28})));
+
+  clock=new THREE.Clock();
+
+  // Input
+  if(!isDesk) setupGyro();
+  addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*2;my=(e.clientY/innerHeight-.5)*2;});
+  addEventListener('touchmove',onTouchMove,{passive:true});
+  addEventListener('touchstart',onTouchStart,{passive:true});
+  addEventListener('touchend',onTouchEnd,{passive:true});
+  addEventListener('click',onTap);
+  addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+}
+
+// ═══════════════════════════════════════════
+//  TAP TO PLACE (raycasting)
+// ═══════════════════════════════════════════
+let lastTap=0;
+function onTap(e){
+  if(!modelGroup) return;
+  const now=Date.now();if(now-lastTap<300) return;lastTap=now;
+  // Ignore taps on UI elements
+  const tag=e.target.tagName;
+  if(['BUTTON','INPUT','A'].includes(tag)) return;
+  if(e.target.closest('#lore,#scan-result,#hud,#anim-bar,#guide,#toast')) return;
+
+  const rect=renderer.domElement.getBoundingClientRect();
+  const ndc=new THREE.Vector2(
+    ((e.clientX-rect.left)/rect.width)*2-1,
+    -((e.clientY-rect.top)/rect.height)*2+1
+  );
+
+  raycaster.setFromCamera(ndc,cam);
+  const hits=raycaster.intersectObject(floorPlane);
+  if(hits.length>0){
+    const pt=hits[0].point;
+    // Smooth slide to new position
+    modelGroup.userData.targetX=pt.x;
+    modelGroup.userData.targetZ=pt.z;
+    // Move ground decorations with it
+    const offset=new THREE.Vector3(pt.x,0,pt.z);
+    [0,1,2,3].forEach(i=>{const r=scene.userData['ring'+i];if(r){r.position.x=pt.x;r.position.z=pt.z;}});
+    const sb=scene.userData.shadowBlob;if(sb){sb.position.x=pt.x;sb.position.z=pt.z;}
+    toast('Sacred being placed ✓','info');
+  }
+}
+
+// ═══════════════════════════════════════════
+//  PINCH TO SCALE
+// ═══════════════════════════════════════════
+function onTouchStart(e){
+  if(e.touches.length===2){
+    touchStartDist=Math.hypot(
+      e.touches[0].clientX-e.touches[1].clientX,
+      e.touches[0].clientY-e.touches[1].clientY
+    );
+  }
+}
+function onTouchMove(e){
+  if(e.touches.length===1){
+    mx=(e.touches[0].clientX/innerWidth-.5)*2;
+    my=(e.touches[0].clientY/innerHeight-.5)*2;
+  } else if(e.touches.length===2 && touchStartDist && modelGroup){
+    const dist=Math.hypot(
+      e.touches[0].clientX-e.touches[1].clientX,
+      e.touches[0].clientY-e.touches[1].clientY
+    );
+    const ratio=dist/touchStartDist;
+    touchStartDist=dist;
+    scaleModel(ratio);
+  }
+}
+function onTouchEnd(){ touchStartDist=null; }
+
+function scaleModel(factor){
+  if(!modelGroup) return;
+  currentScale=Math.max(.2,Math.min(5,currentScale*factor));
+  modelGroup.scale.setScalar(currentScale);
+}
+function resetScale(){
+  if(!modelGroup) return;
+  currentScale=1;modelGroup.scale.setScalar(1);
+}
+
+// ═══════════════════════════════════════════
+//  GLTF LOADER
+// ═══════════════════════════════════════════
+function loadModel(url){
+  if(!url){toast('No model URL — pick a preset or paste a .glb link');hideLoad();return;}
+  setLoad('Loading model…',10);
+
+  if(modelGroup){scene.remove(modelGroup);modelGroup=null;}
+  animActions=[];
+  document.getElementById('anim-bar').innerHTML='';
+  document.getElementById('anim-bar').style.display='none';
+
+  const loader=new THREE.GLTFLoader();
+  loader.load(url,
+    function(gltf){
+      setLoad('Processing…',88);
+      const model=gltf.scene;
+
+      // Auto-scale to ~1.8m
+      const box=new THREE.Box3().setFromObject(model);
+      const sz=box.getSize(new THREE.Vector3());
+      const maxDim=Math.max(sz.x,sz.y,sz.z);
+      model.scale.setScalar(1.8/maxDim);
+
+      // Floor-align
+      box.setFromObject(model);
+      const ctr=box.getCenter(new THREE.Vector3());
+      model.position.sub(ctr);
+      box.setFromObject(model);
+      model.position.y-=box.min.y;
+
+      // PBR + shadows
+      model.traverse(n=>{
+        if(n.isMesh){
+          n.castShadow=true;n.receiveShadow=true;
+          if(n.material){n.material.envMapIntensity=.8;}
+        }
+      });
+
+      modelGroup=new THREE.Group();
+      modelGroup.add(model);
+      modelGroup.position.set(0,0,-4);
+      modelGroup.userData.targetX=0;
+      modelGroup.userData.targetZ=-4;
+      currentScale=1;
+      scene.add(modelGroup);
+
+      addAura(modelGroup,box.getSize(new THREE.Vector3()));
+
+      // Animations
+      if(gltf.animations?.length){
+        mixer=new THREE.AnimationMixer(model);
+        const bar=document.getElementById('anim-bar');
+        bar.style.display='flex';
+        gltf.animations.forEach((clip,i)=>{
+          const action=mixer.clipAction(clip);
+          animActions.push(action);
+          const btn=document.createElement('div');
+          btn.className='ab'+(i===0?' on':'');
+          btn.textContent=clip.name||('Anim '+i);
+          btn.onclick=()=>playAnim(i);
+          bar.appendChild(btn);
+        });
+        animActions[0].play();
+      } else { mixer=null; }
+
+      hideLoad();showAR();
+    },
+    function(xhr){
+      if(xhr.lengthComputable){
+        const pct=(xhr.loaded/xhr.total)*78+10;
+        setLoad('Downloading… '+Math.round(xhr.loaded/1024)+'KB',pct);
+      }
+    },
+    function(err){
+      console.error(err);hideLoad();
+      toast('Could not load model.\n• Check CORS is allowed\n• Must be a direct .glb URL\n• Falling back to Fox…');
+      const fallback='https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb';
+      if(url!==fallback) setTimeout(()=>loadModel(fallback),1800);
+    }
+  );
+}
+
+function addAura(group,sz){
+  const count=250,r=Math.max(sz.x,sz.z)*.55+.5;
+  const geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(count*3),col=new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const a=Math.random()*Math.PI*2,rr=r+Math.random()*.7;
+    pos[i*3]=Math.cos(a)*rr;pos[i*3+1]=Math.random()*sz.y*.9;pos[i*3+2]=Math.sin(a)*rr;
+    col[i*3]=.9+Math.random()*.1;col[i*3+1]=.7+Math.random()*.15;col[i*3+2]=.1+Math.random()*.3;
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.036,vertexColors:true,transparent:true,opacity:.55}));
+  group.userData.aura=pts;group.add(pts);
+}
+
+function playAnim(i){
+  animActions.forEach((a,j)=>j===i?a.reset().fadeIn(.3).play():a.fadeOut(.3));
+  document.querySelectorAll('.ab').forEach((b,j)=>b.classList.toggle('on',j===i));
+}
+
+// ═══════════════════════════════════════════
+//  SHOW AR
+// ═══════════════════════════════════════════
+function showAR(){
+  document.getElementById('ar-wrap').style.display='block';
+  document.getElementById('hud').style.display='block';
+  document.getElementById('hcn').textContent=STATE.name;
+  document.getElementById('hcs').textContent=STATE.sub;
+  document.getElementById('mtext').textContent=STATE.mantra;
+  animate();
+}
+
+// ═══════════════════════════════════════════
+//  LORE PANEL
+// ═══════════════════════════════════════════
+function openLore(){
+  document.getElementById('ln').textContent=STATE.name;
+  document.getElementById('ls').textContent=STATE.sub;
+  document.getElementById('lm').textContent=STATE.mantra;
+  document.getElementById('lt').textContent=STATE.lore||'Ancient sacred being.';
+  document.getElementById('lf').innerHTML=`
+    <div class="lore-fact"><div class="lore-fact-label">Temple</div><div class="lore-fact-value">${STATE.temple||'—'}</div></div>
+    <div class="lore-fact"><div class="lore-fact-label">Era</div><div class="lore-fact-value">${STATE.era||'—'}</div></div>
+    <div class="lore-fact"><div class="lore-fact-label">Language</div><div class="lore-fact-value">Sanskrit</div></div>
+    <div class="lore-fact"><div class="lore-fact-label">Format</div><div class="lore-fact-value">GLTF / GLB</div></div>
+  `;
+  document.getElementById('lore').classList.add('open');
+}
+function closeLore(){document.getElementById('lore').classList.remove('open');}
+
+// ═══════════════════════════════════════════
+//  AR SCAN (simulated — real: use MindAR.js)
+// ═══════════════════════════════════════════
+function toggleScan(){
+  scanActive=!scanActive;
+  const btn=document.getElementById('scan-btn');
+  const overlay=document.getElementById('scan-overlay');
+  if(scanActive){
+    overlay.style.display='block';btn.classList.add('active');
+    btn.textContent='🔴';
+    // Simulate finding a target after 3-5s
+    const delay=3000+Math.random()*2000;
+    scanTimer=setTimeout(triggerScanResult,delay);
+    toast('Point camera at a temple exhibit, sculpture or QR code…','info');
+  } else {
+    overlay.style.display='none';btn.classList.remove('active');
+    btn.textContent='🔍';
+    clearTimeout(scanTimer);
+  }
+}
+
+function triggerScanResult(){
+  if(!scanActive) return;
+  document.getElementById('scan-overlay').style.display='none';
+  document.getElementById('scan-btn').classList.remove('active');
+  document.getElementById('scan-btn').textContent='🔍';
+  scanActive=false;
+
+  const target=SCAN_TARGETS[Math.floor(Math.random()*SCAN_TARGETS.length)];
+  document.getElementById('sr-title').textContent=target.title;
+  document.getElementById('sr-body').textContent=target.body;
+  document.getElementById('sr-actions').innerHTML=target.actions.map(a=>
+    `<button class="sr-btn" onclick="toast('${a} — coming soon in production build','info')">${a}</button>`
+  ).join('');
+  document.getElementById('scan-result').style.display='block';
+}
+
+function closeScanResult(){document.getElementById('scan-result').style.display='none';}
+
+// ═══════════════════════════════════════════
+//  AUDIO
+// ═══════════════════════════════════════════
+function initAudio(){
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  [[174,.05],[432,.03],[528,.025]].forEach(([freq,vol],i)=>{
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+    const pan=audioCtx.createStereoPanner();
+    const filt=audioCtx.createBiquadFilter();
+    const irLen=audioCtx.sampleRate*3;
+    const ib=audioCtx.createBuffer(2,irLen,audioCtx.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=ib.getChannelData(ch);for(let s=0;s<irLen;s++)d[s]=(Math.random()*2-1)*Math.pow(1-s/irLen,2);}
+    const rev=audioCtx.createConvolver();rev.buffer=ib;
+    const lfo=audioCtx.createOscillator(),lfoG=audioCtx.createGain();
+    lfo.frequency.value=.1+i*.05;lfoG.gain.value=1.2;
+    lfo.connect(lfoG);lfoG.connect(osc.frequency);lfo.start();
+    osc.type=i===1?'triangle':'sine';osc.frequency.value=freq;
+    filt.type='lowpass';filt.frequency.value=650;
+    gain.gain.setValueAtTime(0,audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(vol,audioCtx.currentTime+3);
+    pan.pan.value=(i-1)*.4;
+    osc.connect(filt);filt.connect(rev);rev.connect(gain);filt.connect(gain);
+    gain.connect(pan);pan.connect(audioCtx.destination);
+    osc.start();oscNodes.push({osc,gain,lfo});
+  });
+  scheduleBell();
+}
+function scheduleBell(){
+  if(!audioCtx)return;
+  const t=audioCtx.currentTime;
+  [528,792,1056].forEach((f,i)=>{
+    const b=audioCtx.createOscillator(),bg=audioCtx.createGain();
+    const il=audioCtx.sampleRate*3.5;const ib=audioCtx.createBuffer(1,il,audioCtx.sampleRate);
+    const d=ib.getChannelData(0);for(let s=0;s<il;s++)d[s]=(Math.random()*2-1)*Math.pow(1-s/il,1.5);
+    const br=audioCtx.createConvolver();br.buffer=ib;
+    b.type='sine';b.frequency.value=f;
+    const o=t+i*.15;
+    bg.gain.setValueAtTime(0,o);bg.gain.linearRampToValueAtTime(.07,o+.01);bg.gain.exponentialRampToValueAtTime(.001,o+3.5);
+    b.connect(bg);bg.connect(br);br.connect(audioCtx.destination);bg.connect(audioCtx.destination);
+    b.start(o);b.stop(o+5);
+  });
+  setTimeout(scheduleBell,9000+Math.random()*7000);
+}
+function toggleAudio(){
+  muted=!muted;
+  document.getElementById('abtn').textContent=muted?'🔇':'🔊';
+  if(!audioCtx)return;
+  oscNodes.forEach(({gain})=>gain.gain.linearRampToValueAtTime(muted?0:.03,audioCtx.currentTime+.6));
+}
+
+// ═══════════════════════════════════════════
+//  GYROSCOPE
+// ═══════════════════════════════════════════
+function setupGyro(){
+  if(typeof DeviceOrientationEvent?.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(p=>{if(p==='granted')addEventListener('deviceorientation',onOrient);}).catch(()=>{});
+  } else addEventListener('deviceorientation',onOrient);
+}
+function onOrient(e){devBeta=e.beta||45;devGamma=e.gamma||0;}
+
+// ═══════════════════════════════════════════
+//  GUIDE
+// ═══════════════════════════════════════════
+function showGuide(){document.getElementById('guide').style.display='flex';}
+function hideGuide(){document.getElementById('guide').style.display='none';}
+
+// ═══════════════════════════════════════════
+//  ANIMATE LOOP
+// ═══════════════════════════════════════════
+function animate(){
+  requestAnimationFrame(animate);
+  const delta=clock.getDelta();T+=delta;
+
+  // Camera
+  const tx=isDesk?mx*.48:(devGamma/45)*.62;
+  const ty=isDesk?-my*.22:((devBeta-45)/35)*.38;
+  camY+=(tx-camY)*.045;camX+=(ty-camX)*.045;
+  cam.rotation.order='YXZ';cam.rotation.y=camY;cam.rotation.x=camX;
+
+  // Animations
+  if(mixer) mixer.update(delta);
+
+  if(modelGroup){
+    // Smooth slide to tap position
+    const tx2=modelGroup.userData.targetX??modelGroup.position.x;
+    const tz2=modelGroup.userData.targetZ??modelGroup.position.z;
+    modelGroup.position.x+=(tx2-modelGroup.position.x)*.08;
+    modelGroup.position.z+=(tz2-modelGroup.position.z)*.08;
+
+    // Idle float
+    modelGroup.position.y=Math.sin(T*.55)*.05;
+
+    // Gentle sway (only when no animation playing)
+    if(!mixer) modelGroup.rotation.y=Math.sin(T*.3)*.1;
+
+    // Aura drift
+    const aura=modelGroup.userData.aura;
+    if(aura){
+      const pos=aura.geometry.attributes.position;
+      for(let i=0;i<pos.count;i++){
+        pos.setY(i,pos.getY(i)+delta*.09);
+        if(pos.getY(i)>2.2) pos.setY(i,-.05);
+      }
+      pos.needsUpdate=true;
+      aura.rotation.y+=delta*.07;
+    }
+
+    // Shadow scales with model
+    const sb=scene.userData.shadowBlob;
+    if(sb){
+      const s=currentScale*.65;
+      sb.scale.set(s,s,s);
+      sb.material.opacity=.12+Math.sin(T*.8)*.04;
+    }
+  }
+
+  renderer.render(scene,cam);
+}
+
+// Audio resume
+['touchstart','click'].forEach(ev=>
+  addEventListener(ev,()=>{if(audioCtx?.state==='suspended')audioCtx.resume();},{once:true})
+);
+</script>
+</body>
+</html>
