@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>Devlok AR v5 — Temple Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Yatra+One&family=Philosopher:ital,wght@0,400;0,700;1,400&family=Noto+Sans+Devanagari:wght@300;400;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0c0806;--stone:#1a130d;--sandstone:#c8a96e;--gold:#e8c97a;
+  --saffron:#e85d04;--crimson:#9b1d20;--cream:#f5edd8;--ash:#8a7560;
+  --green:#22c55e;--blue:#60a5fa;
+}
+html,body{height:100%;overflow:hidden;background:var(--ink);touch-action:none}
+body{font-family:'Philosopher',Georgia,serif;color:var(--cream)}
+
+/* ══ SCREENS ══ */
+.screen{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;align-items:center;overflow-y:auto}
+.screen.active{display:flex}
+
+/* ══ HOME SCREEN ══ */
+#home{
+  justify-content:flex-start;padding-bottom:40px;
+  background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(200,120,20,.22),transparent 70%),
+             radial-gradient(ellipse 60% 40% at 50% 110%,rgba(155,29,32,.18),transparent 70%),#0c0806;
+}
+#home::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");opacity:.6}
+.gopuram{width:100%;max-width:420px;height:110px;flex-shrink:0}
+.gopuram svg{width:100%;height:100%}
+.home-inner{width:100%;max-width:380px;padding:0 20px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:2}
+.om-char{font-family:'Noto Sans Devanagari',serif;font-size:82px;font-weight:600;color:var(--gold);line-height:1;animation:omg 4s ease-in-out infinite}
+@keyframes omg{0%,100%{filter:drop-shadow(0 0 18px rgba(232,201,122,.4))}50%{filter:drop-shadow(0 0 50px rgba(232,201,122,.9)) drop-shadow(0 0 90px rgba(232,100,4,.4))}}
+.temple-title{font-family:'Yatra One',serif;font-size:30px;color:var(--gold);letter-spacing:4px;margin-bottom:2px;text-shadow:0 2px 18px rgba(232,201,122,.3)}
+.temple-sub{font-size:12px;font-style:italic;color:var(--ash);letter-spacing:2px;margin-bottom:14px}
+.mandir-rule{width:100%;display:flex;align-items:center;gap:8px;margin:6px 0 18px}
+.mandir-rule .ln{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--sandstone),transparent)}
+.mandir-rule .lt{font-size:13px;color:var(--sandstone);opacity:.7}
+
+/* Mode cards */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-bottom:18px}
+.mode-card{
+  background:linear-gradient(145deg,rgba(200,169,110,.07),rgba(200,169,110,.02));
+  border:1px solid rgba(200,169,110,.2);border-radius:16px;padding:20px 14px 16px;
+  cursor:pointer;transition:all .25s;text-align:center;position:relative;overflow:hidden;
+}
+.mode-card::after{content:'';position:absolute;inset:0;border-radius:16px;background:radial-gradient(ellipse at 50% 0%,rgba(232,201,122,.12),transparent 70%);opacity:0;transition:.3s}
+.mode-card:hover::after{opacity:1}
+.mode-card:hover{transform:translateY(-2px);border-color:rgba(232,201,122,.4)}
+.mode-icon{font-size:40px;display:block;margin-bottom:8px}
+.mode-name{font-family:'Yatra One',serif;font-size:15px;color:var(--gold);margin-bottom:4px}
+.mode-desc{font-size:11px;color:var(--ash);line-height:1.5}
+.mode-badge{position:absolute;top:8px;right:8px;font-size:8px;padding:2px 7px;border-radius:20px;font-weight:600;letter-spacing:.5px}
+.badge-admin{background:rgba(232,100,4,.7);color:#fff}
+.badge-visitor{background:rgba(34,197,94,.2);color:rgba(34,197,94,1);border:1px solid rgba(34,197,94,.3)}
+
+/* Creature grid */
+.section-label{font-family:'Yatra One',serif;font-size:10px;letter-spacing:3px;color:var(--ash);text-transform:uppercase;margin-bottom:10px;align-self:flex-start}
+.creature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;width:100%;margin-bottom:16px}
+.cc{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.16);border-radius:11px;padding:9px 4px 8px;cursor:pointer;transition:all .2s;text-align:center;position:relative}
+.cc.sel{border-color:rgba(232,201,122,.6);box-shadow:0 0 14px rgba(232,201,122,.15)}
+.cc-emoji{font-size:24px;display:block;margin-bottom:3px}
+.cc-name{font-family:'Yatra One',serif;font-size:8px;color:var(--gold);letter-spacing:1px}
+.cc-tag{font-size:8px;color:rgba(245,237,216,.28);font-style:italic}
+.cc-live{position:absolute;top:3px;right:3px;font-size:7px;background:rgba(232,100,4,.7);color:#fff;border-radius:20px;padding:1px 4px}
+
+/* Inputs */
+.input-group{width:100%;margin-bottom:14px}
+.input-label{font-size:10px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;display:block;margin-bottom:5px}
+.glb-input{width:100%;background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.2);border-radius:8px;padding:9px 12px;color:var(--cream);font-family:'Philosopher',serif;font-size:12px;outline:none;transition:border-color .2s}
+.glb-input:focus{border-color:rgba(232,201,122,.5)}
+.glb-input::placeholder{color:rgba(245,237,216,.2)}
+
+/* Buttons */
+.btn-gold{width:100%;max-width:280px;font-family:'Yatra One',serif;font-size:14px;letter-spacing:2px;background:linear-gradient(135deg,#c8940a,#e85d04);border:none;border-radius:40px;padding:14px 0;color:var(--ink);cursor:pointer;box-shadow:0 4px 28px rgba(232,100,4,.35);transition:all .25s;margin-bottom:8px}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 44px rgba(232,100,4,.55)}
+.btn-ghost{width:100%;max-width:280px;font-family:'Philosopher',serif;font-size:11px;letter-spacing:2px;background:transparent;border:1px solid rgba(200,169,110,.25);border-radius:40px;padding:11px 0;color:var(--ash);cursor:pointer;transition:all .2s;margin-bottom:6px}
+.help-link{font-size:10px;color:rgba(200,169,110,.4);cursor:pointer;letter-spacing:1px;text-decoration:underline dotted;text-align:center}
+
+/* ══ PERM SCREEN ══ */
+#perm{justify-content:center;gap:14px;padding:40px;text-align:center;background:var(--ink)}
+#perm .perm-icon{font-size:58px}
+#perm h2{font-family:'Yatra One',serif;font-size:20px;color:var(--gold)}
+#perm p{font-size:13px;color:var(--ash);line-height:1.7;max-width:260px}
+
+/* ══ LOADING SCREEN ══ */
+#loading{justify-content:center;gap:14px;background:var(--ink)}
+.load-ring{width:64px;height:64px;position:relative}
+.load-ring::before,.load-ring::after{content:'';position:absolute;border-radius:50%;border:2px solid transparent}
+.load-ring::before{inset:0;border-top-color:var(--gold);animation:spin 1.1s linear infinite}
+.load-ring::after{inset:9px;border-top-color:var(--saffron);animation:spin .75s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+#lpct{font-family:'Yatra One',serif;font-size:30px;color:var(--gold)}
+#ltxt{font-size:11px;letter-spacing:3px;color:var(--ash);text-transform:uppercase;text-align:center;padding:0 20px}
+
+/* ══ AR LAYER ══ */
+#ar-wrap{position:fixed;inset:0;display:none;z-index:10}
+video#feed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+canvas#tc{position:absolute;inset:0;z-index:1;width:100%!important;height:100%!important}
+
+/* ══ HUD ══ */
+#hud{position:fixed;inset:0;z-index:50;pointer-events:none;display:none}
+.corner-piece{position:absolute;width:26px;height:26px}
+.corner-piece svg{width:100%;height:100%}
+.cp-tl{top:10px;left:10px}.cp-tr{top:10px;right:10px;transform:scaleX(-1)}
+.cp-bl{bottom:10px;left:10px;transform:scaleY(-1)}.cp-br{bottom:10px;right:10px;transform:scale(-1)}
+.hud-top{position:absolute;top:0;left:0;right:0;padding:14px 14px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.hud-left{display:flex;flex-direction:column;gap:2px;padding-left:30px}
+.hcn{font-family:'Yatra One',serif;font-size:16px;color:var(--gold);text-shadow:0 0 18px rgba(232,201,122,.45)}
+.hcs{font-size:10px;font-style:italic;color:rgba(245,237,216,.38);letter-spacing:.5px}
+.hud-right{display:flex;flex-direction:column;gap:5px;pointer-events:all;padding-right:2px}
+.hbtn{background:rgba(12,8,6,.62);border:1px solid rgba(200,169,110,.28);border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;backdrop-filter:blur(12px);transition:all .2s}
+.hbtn:hover,.hbtn.on{border-color:var(--gold);background:rgba(232,201,122,.1)}
+.hbtn.back{border-color:rgba(200,169,110,.5)}
+.hbtn.admin-active{border-color:var(--saffron);background:rgba(232,100,4,.15)}
+
+/* Scale strip */
+.scale-strip{position:absolute;right:64px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:all}
+.scbtn{background:rgba(12,8,6,.65);border:1px solid rgba(200,169,110,.25);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:300;color:var(--gold);backdrop-filter:blur(12px);transition:all .2s;user-select:none;-webkit-user-select:none}
+.scbtn:active{background:rgba(232,201,122,.12);transform:scale(.94)}
+
+/* Crosshair */
+.crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px}
+.crosshair::before{content:'';position:absolute;width:1px;height:100%;left:50%;background:rgba(232,201,122,.35)}
+.crosshair::after{content:'';position:absolute;height:1px;width:100%;top:50%;background:rgba(232,201,122,.35)}
+.ch-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:5px;height:5px;border-radius:50%;background:rgba(232,201,122,.7);animation:chdot 2s ease-in-out infinite}
+@keyframes chdot{0%,100%{opacity:.5}50%{opacity:1;box-shadow:0 0 7px rgba(232,201,122,.8)}}
+
+/* Bottom HUD */
+.hud-bot{position:absolute;bottom:0;left:0;right:0;padding:0 14px 26px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.mantra-display{font-family:'Noto Sans Devanagari',serif;font-size:14px;font-weight:300;color:rgba(232,201,122,.82);letter-spacing:2px;text-shadow:0 0 14px rgba(232,201,122,.3),0 2px 6px rgba(0,0,0,.9);animation:mb 7s ease-in-out infinite;text-align:center}
+@keyframes mb{0%,100%{opacity:.4;transform:translateY(3px)}50%{opacity:1;transform:translateY(0)}}
+.tap-hint{font-size:9px;letter-spacing:2px;color:rgba(245,237,216,.18);font-family:'Philosopher',serif;text-align:center}
+
+/* ══ ANIM BAR ══ */
+#anim-bar{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);z-index:60;display:none;gap:5px;flex-wrap:wrap;justify-content:center;max-width:320px;pointer-events:all;padding:0 14px}
+.ab{font-family:'Philosopher',serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;background:rgba(12,8,6,.72);border:1px solid rgba(200,169,110,.22);border-radius:20px;padding:5px 12px;color:var(--ash);cursor:pointer;backdrop-filter:blur(10px);transition:all .2s}
+.ab.on{border-color:var(--gold);color:var(--gold);background:rgba(232,201,122,.07)}
+
+/* ══ LORE PANEL ══ */
+#lore{position:fixed;bottom:0;left:0;right:0;z-index:80;background:linear-gradient(180deg,rgba(12,8,6,0) 0%,rgba(12,8,6,.97) 28px);backdrop-filter:blur(16px);border-top:1px solid rgba(200,169,110,.14);border-radius:20px 20px 0 0;padding:18px 20px 34px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,.72,0,1);pointer-events:all;max-height:55vh;overflow-y:auto}
+#lore.open{transform:translateY(0)}
+.lore-handle{width:34px;height:3px;background:rgba(200,169,110,.28);border-radius:2px;margin:0 auto 14px}
+.lore-close{position:absolute;top:14px;right:14px;background:transparent;border:1px solid rgba(200,169,110,.2);border-radius:50%;width:28px;height:28px;color:var(--ash);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lore-title{font-family:'Yatra One',serif;font-size:19px;color:var(--gold);margin-bottom:2px}
+.lore-sub{font-size:11px;font-style:italic;color:var(--ash);margin-bottom:10px}
+.lore-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(200,169,110,.2),transparent);margin:8px 0}
+.lore-mantra{font-family:'Noto Sans Devanagari',serif;font-size:17px;color:var(--gold);text-align:center;margin:12px 0;opacity:.85}
+.lore-text{font-size:13px;color:rgba(245,237,216,.62);line-height:1.8}
+.lore-facts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.lf{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.11);border-radius:8px;padding:7px 9px}
+.lf-label{font-size:9px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;margin-bottom:2px}
+.lf-val{font-size:12px;color:var(--cream)}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:300;border-radius:12px;padding:10px 18px;font-size:12px;color:#fff;text-align:center;display:none;max-width:300px;backdrop-filter:blur(12px);line-height:1.5;pointer-events:none}
+#toast.err{background:rgba(155,29,32,.9);border:1px solid rgba(255,100,100,.3)}
+#toast.info{background:rgba(20,60,30,.92);border:1px solid rgba(34,197,94,.3)}
+#toast.warn{background:rgba(140,80,0,.9);border:1px solid rgba(232,201,122,.3)}
+
+/* ══ ADMIN DROP PANEL ══ */
+#admin-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:85;
+  background:rgba(12,8,6,.96);backdrop-filter:blur(20px);
+  border-top:1px solid rgba(232,100,4,.3);border-radius:20px 20px 0 0;
+  padding:18px 20px 36px;
+  transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);
+  pointer-events:all;
+}
+#admin-panel.open{transform:translateY(0)}
+.ap-handle{width:34px;height:3px;background:rgba(232,100,4,.3);border-radius:2px;margin:0 auto 14px}
+.ap-title{font-family:'Yatra One',serif;font-size:17px;color:var(--saffron);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ap-title span{font-size:12px;color:var(--ash);font-family:'Philosopher',serif}
+.ap-field{margin-bottom:10px}
+.ap-label{font-size:10px;letter-spacing:1.5px;color:var(--ash);text-transform:uppercase;display:block;margin-bottom:4px}
+.ap-input{width:100%;background:rgba(232,100,4,.05);border:1px solid rgba(232,100,4,.2);border-radius:8px;padding:8px 11px;color:var(--cream);font-family:'Philosopher',serif;font-size:12px;outline:none;transition:border-color .2s}
+.ap-input:focus{border-color:rgba(232,100,4,.5)}
+.ap-input::placeholder{color:rgba(245,237,216,.2)}
+.ap-select{width:100%;background:rgba(232,100,4,.05);border:1px solid rgba(232,100,4,.2);border-radius:8px;padding:8px 11px;color:var(--cream);font-family:'Philosopher',serif;font-size:12px;outline:none;appearance:none}
+.ap-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ap-radius-row{display:flex;gap:8px;align-items:center}
+.ap-radius-val{font-family:'Yatra One',serif;font-size:18px;color:var(--gold);min-width:48px;text-align:center}
+.btn-drop{width:100%;font-family:'Yatra One',serif;font-size:13px;letter-spacing:2px;background:linear-gradient(135deg,var(--saffron),var(--crimson));border:none;border-radius:40px;padding:13px;color:#fff;cursor:pointer;box-shadow:0 4px 22px rgba(232,100,4,.4);transition:all .25s;margin-top:6px}
+.btn-drop:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(232,100,4,.6)}
+.ap-close{position:absolute;top:14px;right:16px;background:transparent;border:1px solid rgba(232,100,4,.2);border-radius:50%;width:28px;height:28px;color:var(--ash);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ══ PROXIMITY BEACON ══ */
+.beacon{
+  position:fixed;z-index:65;pointer-events:none;
+  transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  transition:opacity .4s;
+}
+.beacon-ring{
+  width:52px;height:52px;border-radius:50%;
+  border:2px solid rgba(232,201,122,.6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;position:relative;
+  animation:beacon-pulse 2s ease-in-out infinite;
+}
+@keyframes beacon-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(232,201,122,.4)}
+  50%{box-shadow:0 0 0 12px rgba(232,201,122,0)}
+}
+.beacon-ring.close{border-color:var(--green);animation:beacon-close 1.2s ease-in-out infinite}
+@keyframes beacon-close{
+  0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}
+  50%{box-shadow:0 0 0 16px rgba(34,197,94,0)}
+}
+.beacon-dist{font-size:9px;font-family:'Philosopher',serif;color:rgba(232,201,122,.7);letter-spacing:1px;background:rgba(12,8,6,.7);padding:2px 7px;border-radius:20px;white-space:nowrap}
+
+/* ══ PROXIMITY REVEAL CARD ══ */
+#reveal-card{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  z-index:90;background:rgba(12,8,6,.94);border:1px solid rgba(200,169,110,.25);
+  border-radius:18px;padding:18px 18px 14px;width:min(300px,90vw);
+  backdrop-filter:blur(22px);display:none;pointer-events:all;
+  animation:slideup .4s cubic-bezier(.32,.72,0,1);
+}
+@keyframes slideup{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.rc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.rc-emoji{font-size:28px;margin-right:10px}
+.rc-title{font-family:'Yatra One',serif;font-size:15px;color:var(--gold)}
+.rc-sub{font-size:10px;font-style:italic;color:var(--ash);margin-top:1px}
+.rc-close{background:transparent;border:1px solid rgba(200,169,110,.2);border-radius:50%;width:26px;height:26px;color:var(--ash);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rc-body{font-size:12px;color:rgba(245,237,216,.6);line-height:1.65;margin-bottom:10px}
+.rc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.rc-tag{font-size:9px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.18);border-radius:20px;padding:2px 9px;color:var(--sandstone)}
+.rc-actions{display:flex;gap:8px}
+.rc-btn{font-family:'Philosopher',serif;font-size:10px;letter-spacing:1px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);border-radius:20px;padding:6px 13px;color:var(--gold);cursor:pointer;transition:all .2s}
+.rc-btn:hover{background:rgba(200,169,110,.16);border-color:rgba(200,169,110,.45)}
+.rc-btn.primary{background:linear-gradient(135deg,rgba(200,140,10,.4),rgba(232,100,4,.3));border-color:var(--saffron);color:var(--cream)}
+
+/* ══ ADMIN MAP ══ */
+#admin-map{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(12,8,6,.97);display:none;flex-direction:column;
+}
+.map-header{padding:16px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(200,169,110,.12)}
+.map-back{background:transparent;border:1px solid rgba(200,169,110,.25);border-radius:8px;padding:6px 12px;color:var(--gold);font-family:'Philosopher',serif;font-size:12px;cursor:pointer}
+.map-title{font-family:'Yatra One',serif;font-size:16px;color:var(--gold)}
+.map-canvas-wrap{flex:1;position:relative;overflow:hidden}
+#map-canvas{width:100%;height:100%;background:#0d0a04}
+.map-legend{padding:10px 16px 20px;display:flex;gap:12px;flex-wrap:wrap}
+.map-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ash)}
+.map-leg-dot{width:10px;height:10px;border-radius:50%}
+.map-controls{display:flex;gap:8px;padding:0 16px 10px}
+.map-btn{font-family:'Philosopher',serif;font-size:10px;letter-spacing:1px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.18);border-radius:20px;padding:6px 14px;color:var(--gold);cursor:pointer;transition:all .2s}
+.map-btn:hover{background:rgba(200,169,110,.15)}
+.map-btn.danger{border-color:rgba(155,29,32,.4);color:rgba(220,80,80,.8)}
+
+/* ══ GUIDE ══ */
+#guide{position:fixed;inset:0;z-index:250;background:rgba(12,8,6,.97);display:none;flex-direction:column;overflow-y:auto;padding:24px 20px 50px}
+#guide h2{font-family:'Yatra One',serif;font-size:19px;color:var(--gold);margin-bottom:14px}
+.g-close{align-self:flex-end;background:transparent;border:1px solid rgba(200,169,110,.22);color:var(--ash);border-radius:50%;width:32px;height:32px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.g-sec{margin-bottom:20px}
+.g-sec h3{font-family:'Yatra One',serif;font-size:12px;letter-spacing:1px;color:var(--sandstone);margin-bottom:8px;border-bottom:1px solid rgba(200,169,110,.1);padding-bottom:5px}
+.g-sec p,.g-sec li{font-size:13px;color:rgba(245,237,216,.58);line-height:1.7;margin-bottom:5px}
+.g-sec li{margin-left:16px;list-style:disc}
+.g-sec a{color:rgba(120,200,255,.8);text-decoration:underline}
+.g-code{background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.1);border-radius:7px;padding:9px;font-family:monospace;font-size:11px;color:rgba(245,237,216,.5);line-height:1.7;margin:6px 0;word-break:break-all}
+.g-pill{display:inline-block;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.2);border-radius:20px;padding:2px 9px;font-size:10px;color:var(--sandstone);margin:2px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     HOME SCREEN
+══════════════════════════════════════════ -->
+<div id="home" class="screen active">
+  <div class="gopuram">
+    <svg viewBox="0 0 420 110" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <defs><linearGradient id="ga" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#c8940a" stop-opacity=".5"/><stop offset="100%" stop-color="#c8940a" stop-opacity="0"/></linearGradient></defs>
+      <path d="M0 110 L0 55 Q210 -25 420 55 L420 110 Z" fill="url(#ga)"/>
+      <path d="M0 55 Q210 -25 420 55" stroke="#c8940a" stroke-width="1" fill="none" opacity=".4"/>
+      <rect x="160" y="2" width="100" height="7" rx="2" fill="rgba(200,140,10,.28)"/>
+      <rect x="170" y="9" width="80" height="6" rx="2" fill="rgba(200,140,10,.22)"/>
+      <rect x="180" y="15" width="60" height="5" rx="2" fill="rgba(200,140,10,.17)"/>
+      <rect x="188" y="20" width="44" height="4" rx="2" fill="rgba(200,140,10,.13)"/>
+      <ellipse cx="210" cy="4" rx="7" ry="4" fill="rgba(232,201,122,.45)"/>
+      <circle cx="210" cy="3" r="2" fill="rgba(232,201,122,.7)"/>
+      <circle cx="125" cy="52" r="3" fill="rgba(200,140,10,.35)"/>
+      <circle cx="295" cy="52" r="3" fill="rgba(200,140,10,.35)"/>
+      <rect x="18" y="65" width="5" height="45" fill="rgba(200,140,10,.14)" rx="2"/>
+      <rect x="397" y="65" width="5" height="45" fill="rgba(200,140,10,.14)" rx="2"/>
+    </svg>
+  </div>
+
+  <div class="home-inner">
+    <div style="text-align:center;margin-bottom:4px"><span class="om-char">ॐ</span></div>
+    <h1 class="temple-title">DEVLOK AR</h1>
+    <p class="temple-sub">Temple & Museum Sacred Guide v5</p>
+    <div class="mandir-rule">
+      <div class="ln"></div><span class="lt">❋</span><div class="ln"></div>
+      <span class="lt">🪷</span><div class="ln"></div><span class="lt">❋</span><div class="ln"></div>
+    </div>
+
+    <!-- MODE SELECTION -->
+    <p class="section-label">Select Your Role</p>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="setMode('visitor');begin()">
+        <span class="mode-badge badge-visitor">EXPLORE</span>
+        <span class="mode-icon">🧭</span>
+        <div class="mode-name">Visitor</div>
+        <div class="mode-desc">Walk the temple · sacred beings appear when you arrive</div>
+      </div>
+      <div class="mode-card" onclick="setMode('admin');showAdminOptions()">
+        <span class="mode-badge badge-admin">ADMIN</span>
+        <span class="mode-icon">🏛️</span>
+        <div class="mode-name">Curator</div>
+        <div class="mode-desc">Drop sacred beings at GPS locations for visitors to find</div>
+      </div>
+    </div>
+
+    <!-- ADMIN ONLY: creature select + URL (hidden for visitor) -->
+    <div id="admin-options" style="display:none;width:100%">
+      <p class="section-label">Choose Sacred Being to Place</p>
+      <div class="creature-grid">
+        <div class="cc sel" data-url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb" data-name="Vahana Fox" data-mantra="ॐ नमः शिवाय" data-sub="Spirit messenger" data-lore="The divine fox is a sacred messenger, revered as the vehicle of certain forest deities." data-temple="Forest shrines" data-era="Timeless" onclick="pickCreature(this)">
+          <span class="cc-emoji">🦊</span><div class="cc-name">Vahana</div><div class="cc-tag">Animated</div><div class="cc-live">LIVE</div>
+        </div>
+        <div class="cc" data-url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/CesiumMan/glTF-Binary/CesiumMan.glb" data-name="Dvarapala" data-mantra="ॐ विष्णवे नमः" data-sub="Temple guardian" data-lore="The eternal guardian who stands at the threshold of sacred temples." data-temple="Vishnu temples" data-era="Gupta period" onclick="pickCreature(this)">
+          <span class="cc-emoji">🛡️</span><div class="cc-name">Dvarapala</div><div class="cc-tag">Walking</div>
+        </div>
+        <div class="cc" data-url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Duck/glTF-Binary/Duck.glb" data-name="Hamsa" data-mantra="ॐ हंसाय नमः" data-sub="Vehicle of Brahma" data-lore="The sacred swan symbolises wisdom and discernment." data-temple="Brahma temples" data-era="Vedic" onclick="pickCreature(this)">
+          <span class="cc-emoji">🦢</span><div class="cc-name">Hamsa</div><div class="cc-tag">Static</div>
+        </div>
+        <div class="cc" data-url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/BrainStem/glTF-Binary/BrainStem.glb" data-name="Cosmic Form" data-mantra="ॐ नमो नारायण" data-sub="Virat Swaroop" data-lore="The Universal Form revealed by Krishna to Arjuna." data-temple="All temples" data-era="Dvapara Yuga" onclick="pickCreature(this)">
+          <span class="cc-emoji">🌌</span><div class="cc-name">Virat</div><div class="cc-tag">Animated</div>
+        </div>
+        <div class="cc" data-url="" data-name="Lord Hanuman" data-mantra="ॐ हनुमते नमः" data-sub="Son of Vayu" data-lore="Embodiment of devotion, strength and selfless service." data-temple="Hanuman temples" data-era="Treta Yuga" onclick="pickCreature(this)">
+          <span class="cc-emoji">🐒</span><div class="cc-name">Hanuman</div><div class="cc-tag">Custom</div>
+        </div>
+        <div class="cc" data-url="" data-name="Lord Ganesha" data-mantra="ॐ गं गणपतये नमः" data-sub="Remover of obstacles" data-lore="The elephant-headed son of Shiva, lord of beginnings." data-temple="All occasions" data-era="Eternal" onclick="pickCreature(this)">
+          <span class="cc-emoji">🐘</span><div class="cc-name">Ganesha</div><div class="cc-tag">Custom</div>
+        </div>
+        <div class="cc" data-url="" data-name="Goddess Durga" data-mantra="ॐ दुं दुर्गायै नमः" data-sub="Destroyer of evil" data-lore="The fierce aspect of Shakti, riding a lion." data-temple="Shakti peethas" data-era="Eternal" onclick="pickCreature(this)">
+          <span class="cc-emoji">⚔️</span><div class="cc-name">Durga</div><div class="cc-tag">Custom</div>
+        </div>
+        <div class="cc" data-url="custom" data-name="Custom" data-mantra="ॐ नमो नारायण" data-sub="Your GLB" data-lore="Load your own 3D model." data-temple="Any" data-era="Any" onclick="pickCreature(this)">
+          <span class="cc-emoji">🔗</span><div class="cc-name">Custom</div><div class="cc-tag">Paste URL</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Custom GLB URL (optional)</label>
+        <input class="glb-input" id="custom-url" type="url" placeholder="https://…/model.glb" oninput="onCustomUrl()"/>
+      </div>
+      <button class="btn-gold" onclick="begin()">ENTER AS CURATOR</button>
+    </div>
+
+    <button class="btn-ghost" onclick="showAdminMap()">🗺 View Sacred Hunt Map</button>
+    <p class="help-link" onclick="showGuide()">📖 How to get free models from Sketchfab</p>
+    <p style="font-size:10px;color:rgba(138,117,96,.3);margin-top:10px;text-align:center">Grant camera for AR · Desktop preview available</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PERM SCREEN
+══════════════════════════════════════════ -->
+<div id="perm" class="screen">
+  <div class="perm-icon">🏛️</div>
+  <h2>Open the Temple Gates</h2>
+  <p>Allow camera access to place sacred beings in your physical space.</p>
+  <button class="btn-gold" onclick="reqCam()" style="margin-top:8px">GRANT CAMERA</button>
+  <button class="btn-ghost" onclick="deskMode()">DESKTOP PREVIEW</button>
+  <button class="btn-ghost" onclick="goHome()" style="margin-top:4px">← Back</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LOADING SCREEN
+══════════════════════════════════════════ -->
+<div id="loading" class="screen">
+  <div class="load-ring"></div>
+  <div id="lpct">0%</div>
+  <p id="ltxt">Summoning sacred being…</p>
+</div>
+
+<!-- AR CANVAS -->
+<div id="ar-wrap">
+  <video id="feed" autoplay playsinline muted></video>
+  <canvas id="tc"></canvas>
+</div>
+
+<!-- ══ HUD ══ -->
+<div id="hud">
+  <div class="corner-piece cp-tl"><svg viewBox="0 0 26 26" fill="none"><path d="M2 24L2 8Q2 2 8 2L24 2" stroke="rgba(200,169,110,.45)" stroke-width="1.5" fill="none"/><circle cx="2" cy="2" r="1.8" fill="rgba(200,169,110,.4)"/></svg></div>
+  <div class="corner-piece cp-tr"><svg viewBox="0 0 26 26" fill="none"><path d="M2 24L2 8Q2 2 8 2L24 2" stroke="rgba(200,169,110,.45)" stroke-width="1.5" fill="none"/><circle cx="2" cy="2" r="1.8" fill="rgba(200,169,110,.4)"/></svg></div>
+  <div class="corner-piece cp-bl"><svg viewBox="0 0 26 26" fill="none"><path d="M2 24L2 8Q2 2 8 2L24 2" stroke="rgba(200,169,110,.45)" stroke-width="1.5" fill="none"/><circle cx="2" cy="2" r="1.8" fill="rgba(200,169,110,.4)"/></svg></div>
+  <div class="corner-piece cp-br"><svg viewBox="0 0 26 26" fill="none"><path d="M2 24L2 8Q2 2 8 2L24 2" stroke="rgba(200,169,110,.45)" stroke-width="1.5" fill="none"/><circle cx="2" cy="2" r="1.8" fill="rgba(200,169,110,.4)"/></svg></div>
+
+  <div class="hud-top">
+    <div class="hud-left">
+      <div class="hcn" id="hcn">Sacred Fox</div>
+      <div class="hcs" id="hcs">Spirit messenger</div>
+    </div>
+    <div class="hud-right">
+      <!-- BACK BUTTON -->
+      <div class="hbtn back" onclick="goHome()" title="Back to Home">🏠</div>
+      <div class="hbtn" id="abtn" onclick="toggleAudio()" title="Audio">🔊</div>
+      <div class="hbtn" id="admin-btn" onclick="toggleAdminPanel()" title="Admin: Drop object" style="display:none">📍</div>
+      <div class="hbtn" id="sim-btn" onclick="simulateWalk()" title="Simulate walk to object (desktop test)" style="display:none">🚶</div>
+      <div class="hbtn" onclick="openLore()" title="Lore">📜</div>
+    </div>
+  </div>
+
+  <div class="scale-strip">
+    <div class="scbtn" onclick="scaleModel(1.15)">＋</div>
+    <div class="scbtn" onclick="scaleModel(0.87)">－</div>
+    <div class="scbtn" onclick="resetScale()" style="font-size:11px">↺</div>
+  </div>
+
+  <div class="crosshair"><div class="ch-dot"></div></div>
+
+  <div class="hud-bot">
+    <div id="anim-bar"></div>
+    <div class="mantra-display" id="mtext">ॐ नमः शिवाय</div>
+    <div class="tap-hint" id="tap-hint">TAP FLOOR TO PLACE · PINCH TO SCALE</div>
+  </div>
+</div>
+
+<!-- ══ LORE PANEL ══ -->
+<div id="lore">
+  <div class="lore-handle"></div>
+  <button class="lore-close" onclick="closeLore()">✕</button>
+  <div class="lore-title" id="ln"></div>
+  <div class="lore-sub" id="ls"></div>
+  <div class="lore-divider"></div>
+  <div class="lore-mantra" id="lm"></div>
+  <div class="lore-text" id="lt"></div>
+  <div class="lore-facts" id="lf"></div>
+</div>
+
+<!-- ══ ADMIN DROP PANEL ══ -->
+<div id="admin-panel">
+  <div class="ap-handle"></div>
+  <button class="ap-close" onclick="closeAdminPanel()">✕</button>
+  <div class="ap-title">📍 Drop Sacred Object <span>at your GPS location</span></div>
+
+  <div class="ap-field">
+    <label class="ap-label">Object Name</label>
+    <input class="ap-input" id="ap-name" placeholder="e.g. Lord Ganesha at East Gate"/>
+  </div>
+  <div class="ap-field">
+    <label class="ap-label">Description (shown to visitors)</label>
+    <input class="ap-input" id="ap-desc" placeholder="Brief lore or exhibit info…"/>
+  </div>
+  <div class="ap-row">
+    <div class="ap-field">
+      <label class="ap-label">Category</label>
+      <select class="ap-select" id="ap-cat">
+        <option value="deity">🕉 Deity</option>
+        <option value="exhibit">🏺 Exhibit</option>
+        <option value="landmark">🏛 Landmark</option>
+        <option value="story">📖 Story</option>
+        <option value="offering">🪔 Offering</option>
+      </select>
+    </div>
+    <div class="ap-field">
+      <label class="ap-label">Visibility Radius</label>
+      <div class="ap-radius-row">
+        <div class="scbtn" onclick="adjustRadius(-5)" style="width:30px;height:30px;font-size:16px">－</div>
+        <div class="ap-radius-val" id="ap-rad-val">20m</div>
+        <div class="scbtn" onclick="adjustRadius(5)" style="width:30px;height:30px;font-size:16px">＋</div>
+      </div>
+    </div>
+  </div>
+  <div class="ap-field">
+    <label class="ap-label">Custom GLB URL (optional — uses current model if blank)</label>
+    <input class="ap-input" id="ap-url" placeholder="https://…/model.glb"/>
+  </div>
+  <div style="font-size:11px;color:var(--ash);margin-bottom:8px;line-height:1.5">
+    📍 Will be placed at: <span id="ap-gps-label" style="color:var(--gold)">Getting location…</span>
+  </div>
+  <button class="btn-drop" onclick="dropObject()">DROP HERE</button>
+</div>
+
+<!-- ══ PROXIMITY REVEAL CARD ══ -->
+<div id="reveal-card">
+  <div class="rc-header">
+    <div style="display:flex;align-items:center">
+      <div class="rc-emoji" id="rc-emoji">🕉</div>
+      <div>
+        <div class="rc-title" id="rc-title">Sacred Object</div>
+        <div class="rc-sub" id="rc-sub">Appears as you approach</div>
+      </div>
+    </div>
+    <button class="rc-close" onclick="closeReveal()">✕</button>
+  </div>
+  <div class="rc-body" id="rc-body"></div>
+  <div class="rc-meta" id="rc-meta"></div>
+  <div class="rc-actions">
+    <button class="rc-btn primary" onclick="loadRevealedModel()">✨ View in AR</button>
+    <button class="rc-btn" onclick="closeReveal()">Dismiss</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN MAP ══ -->
+<div id="admin-map">
+  <div class="map-header">
+    <button class="map-back" onclick="closeAdminMap()">← Back</button>
+    <div class="map-title">🗺 Sacred Object Map</div>
+  </div>
+  <div class="map-controls">
+    <button class="map-btn" onclick="clearAllObjects()" style="border-color:rgba(155,29,32,.4);color:rgba(220,80,80,.8)">🗑 Clear All</button>
+    <button class="map-btn" onclick="exportObjects()">📤 Export JSON</button>
+    <button class="map-btn" onclick="importObjects()">📥 Import JSON</button>
+  </div>
+  <div class="map-canvas-wrap">
+    <canvas id="map-canvas"></canvas>
+  </div>
+  <div class="map-legend">
+    <div class="map-leg-item"><div class="map-leg-dot" style="background:#e8c97a"></div>Deity</div>
+    <div class="map-leg-item"><div class="map-leg-dot" style="background:#60a5fa"></div>Exhibit</div>
+    <div class="map-leg-item"><div class="map-leg-dot" style="background:#a78bfa"></div>Landmark</div>
+    <div class="map-leg-item"><div class="map-leg-dot" style="background:#34d399"></div>Story</div>
+    <div class="map-leg-item"><div class="map-leg-dot" style="background:#f97316"></div>Offering</div>
+    <div class="map-leg-item"><div class="map-leg-dot" style="background:rgba(255,255,255,.3);border:1px solid #fff"></div>You</div>
+  </div>
+</div>
+
+<!-- ══ GUIDE ══ -->
+<div id="guide">
+  <button class="g-close" onclick="hideGuide()">✕</button>
+  <h2>Getting Free 3D Models</h2>
+  <div class="g-sec">
+    <h3>Sketchfab — Best source</h3>
+    <ul>
+      <li>Search <a href="https://sketchfab.com/search?q=hanuman&features=downloadable" target="_blank">sketchfab.com</a> → filter Free + Downloadable</li>
+      <li>Download → Auto-converted glTF → unzip → use the .glb file</li>
+    </ul>
+    <div><span class="g-pill">hanuman</span><span class="g-pill">ganesha</span><span class="g-pill">shiva</span><span class="g-pill">garuda</span><span class="g-pill">nandi</span><span class="g-pill">durga</span></div>
+  </div>
+  <div class="g-sec">
+    <h3>Host your GLB</h3>
+    <ul><li>Push to GitHub → use raw URL:</li></ul>
+    <div class="g-code">https://raw.githubusercontent.com/YOU/REPO/main/hanuman.glb</div>
+    <ul><li>Or use <a href="https://meshy.ai" target="_blank">meshy.ai</a> to AI-generate in 2 min free</li></ul>
+  </div>
+  <div class="g-sec">
+    <h3>Other free sources</h3>
+    <ul>
+      <li><a href="https://poly.pizza" target="_blank">poly.pizza</a> — CC0 low-poly</li>
+      <li><a href="https://polyhaven.com/models" target="_blank">polyhaven.com</a> — CC0 PBR</li>
+      <li><a href="https://kenney.nl/assets" target="_blank">kenney.nl</a> — CC0 game assets</li>
+    </ul>
+  </div>
+  <button class="btn-gold" onclick="hideGuide()" style="margin-top:8px">CLOSE</button>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const S = {
+  mode: 'visitor',       // 'visitor' | 'admin'
+  url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb',
+  name: 'Vahana Fox', sub: 'Spirit messenger',
+  mantra: 'ॐ नमः शिवाय', lore: '', temple: '', era: '',
+  dropRadius: 20,
+  userLat: null, userLng: null,
+  watchId: null,
+};
+
+// Placed objects — persisted in localStorage
+let OBJECTS = JSON.parse(localStorage.getItem('devlok_objects') || '[]');
+
+// Three.js
+let scene, cam, renderer, clock, raycaster, floorPlane;
+let modelGroup, mixer, animActions = [];
+let audioCtx, oscNodes = [], muted = false;
+let isDesk = false;
+let devBeta = 45, devGamma = 0;
+let mx = 0, my = 0, camX = 0, camY = 0, T = 0;
+let currentScale = 1;
+let touchStartDist = null;
+let activeRevealId = null;
+let revealedObjectData = null;
+
+// Beacon DOM nodes
+const beaconNodes = {};
+
+// Category colours and icons
+const CAT = {
+  deity:    { color: '#e8c97a', icon: '🕉' },
+  exhibit:  { color: '#60a5fa', icon: '🏺' },
+  landmark: { color: '#a78bfa', icon: '🏛' },
+  story:    { color: '#34d399', icon: '📖' },
+  offering: { color: '#f97316', icon: '🪔' },
+};
+
+// ══════════════════════════════════════════
+//  SCREEN ROUTER
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function goHome() {
+  // Tear down AR if running
+  if (S.watchId) { navigator.geolocation.clearWatch(S.watchId); S.watchId = null; }
+  if (S.simInterval) { clearInterval(S.simInterval); S.simInterval = null; S.simGpsStarted = false; S.simArrived = false; S.simLat = null; }
+  if (S.proxInterval) { clearInterval(S.proxInterval); S.proxInterval = null; }
+  clearBeacons();
+  document.getElementById('ar-wrap').style.display = 'none';
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('anim-bar').style.display = 'none';
+  closeLore(); closeAdminPanel(); closeReveal();
+  // Reset flags so objects can reveal again
+  OBJECTS.forEach(o => { o._modelShown = false; o._wasNear = false; });
+  showScreen('home');
+}
+
+function goToCreatureSelect() { /* stays on home, mode already set */ }
+function setMode(m) { S.mode = m; }
+
+// ══════════════════════════════════════════
+//  SPLASH INTERACTIONS
+// ══════════════════════════════════════════
+function pickCreature(el) {
+  document.querySelectorAll('.cc').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  const url = el.dataset.url;
+  S.url    = url === 'custom' ? '' : url;
+  S.name   = el.dataset.name;
+  S.sub    = el.dataset.sub;
+  S.mantra = el.dataset.mantra;
+  S.lore   = el.dataset.lore;
+  S.temple = el.dataset.temple;
+  S.era    = el.dataset.era;
+  if (!S.url) document.getElementById('custom-url').focus();
+}
+
+function onCustomUrl() {
+  const v = document.getElementById('custom-url').value.trim();
+  if (v) S.url = v;
+}
+
+function showAdminOptions() {
+  setMode('admin');
+  const el = document.getElementById('admin-options');
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function begin() {
+  const custom = document.getElementById('custom-url');
+  if (custom && custom.value.trim()) S.url = custom.value.trim();
+  // Visitor needs no creature selected — AR starts empty, objects reveal on proximity
+  showScreen('perm');
+}
+
+// ══════════════════════════════════════════
+//  CAMERA / PERM
+// ══════════════════════════════════════════
+function reqCam() {
+  showScreen('loading'); setLoad('Opening camera…', 0);
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+    .then(stream => {
+      document.getElementById('feed').srcObject = stream;
+      isDesk = false; launch();
+    })
+    .catch(() => deskMode());
+}
+
+function deskMode() {
+  isDesk = true;
+  document.getElementById('feed').style.display = 'none';
+  document.getElementById('ar-wrap').style.background = 'radial-gradient(ellipse at 35% 65%,#150e04,#0c0806 80%)';
+  showScreen('loading'); launch();
+}
+
+function launch() {
+  setLoad('Scanning for sacred ground…', 5);
+  startGPS();
+  initThree();
+  initAudio();
+  // DO NOT load model here — only reveal when visitor walks within 2m
+  // Admin mode: load immediately so they can see what they're placing
+  if (S.mode === 'admin') {
+    loadModel(S.url);
+  } else {
+    // Visitor: show empty AR, waiting for proximity
+    setTimeout(() => { hideLoad(); showAR(false); }, 1200);
+  }
+}
+
+function setLoad(msg, pct) {
+  document.getElementById('ltxt').textContent = msg;
+  document.getElementById('lpct').textContent = Math.round(pct) + '%';
+}
+function hideLoad() { showScreen(null); } // no screen shown — AR takes over
+
+// ══════════════════════════════════════════
+//  GPS
+// ══════════════════════════════════════════
+function startGPS() {
+  if (!navigator.geolocation) { startSimulatedGPS(); return; }
+  S.watchId = navigator.geolocation.watchPosition(
+    pos => {
+      S.userLat = pos.coords.latitude;
+      S.userLng = pos.coords.longitude;
+      const el = document.getElementById('ap-gps-label');
+      if (el) el.textContent = S.userLat.toFixed(5) + ', ' + S.userLng.toFixed(5);
+      checkProximity();
+      updateBeacons();
+    },
+    () => startSimulatedGPS(),
+    { enableHighAccuracy: true, maximumAge: 3000, timeout: 8000 }
+  );
+}
+
+function startSimulatedGPS() {
+  // Desktop / no-GPS fallback — simulate being at the first dropped object's location
+  // so proximity triggers immediately for testing
+  if (S.simGpsStarted) return;
+  S.simGpsStarted = true;
+
+  const setPos = () => {
+    // If objects exist, simulate walking toward first one
+    if (OBJECTS.length > 0 && !S.simArrived) {
+      const target = OBJECTS[0];
+      if (!S.simLat) {
+        // Start 30m away from first object
+        S.simLat = target.lat + 0.00027; // ~30m north
+        S.simLng = target.lng;
+      }
+      // Step toward target
+      const dlat = (target.lat - S.simLat) * 0.15;
+      const dlng = (target.lng - S.simLng) * 0.15;
+      S.simLat += dlat;
+      S.simLng += dlng;
+      const dist = gpsDistance(S.simLat, S.simLng, target.lat, target.lng);
+      if (dist < 1.5) S.simArrived = true;
+      S.userLat = S.simLat;
+      S.userLng = S.simLng;
+    } else if (!S.userLat) {
+      // No objects — just place user at Bengaluru centre
+      S.userLat = 12.9716;
+      S.userLng = 77.5946;
+    }
+    const el = document.getElementById('ap-gps-label');
+    if (el) el.textContent = (S.userLat||0).toFixed(5) + ', ' + (S.userLng||0).toFixed(5) + ' (simulated)';
+    checkProximity();
+    updateBeacons();
+  };
+
+  setPos();
+  S.simInterval = setInterval(setPos, 2000);
+}
+
+// Haversine distance in metres
+function gpsDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function checkProximity() {
+  if (!S.userLat) return;
+  OBJECTS.forEach(obj => {
+    const dist = gpsDistance(S.userLat, S.userLng, obj.lat, obj.lng);
+    obj._dist = Math.round(dist);
+
+    const REVEAL_RANGE = 2;   // metres — model appears
+    const ALERT_RANGE  = obj.radius; // metres — card / beacon activates
+
+    // ── Within 2m: REVEAL the 3D model ──────────────────────────
+    if (dist <= REVEAL_RANGE) {
+      if (!obj._modelShown) {
+        obj._modelShown = true;
+        obj._wasNear    = true;
+        revealedObjectData = obj;
+        // Load this object's GLB (or default if none)
+        const url = obj.url || S.url;
+        S.name   = obj.name;
+        S.sub    = obj.description || '';
+        S.mantra = obj.mantra || S.mantra;
+        document.getElementById('hcn').textContent = S.name;
+        document.getElementById('hcs').textContent = S.sub;
+        document.getElementById('mtext').textContent = S.mantra;
+        triggerModelReveal(url, obj);
+      }
+    } else {
+      // Hide model if visitor walks away beyond reveal range
+      if (obj._modelShown && dist > REVEAL_RANGE + 1) {
+        obj._modelShown = false;
+        if (S.mode === 'visitor') hideModel();
+      }
+    }
+
+    // ── Within alert range: show beacon + card ───────────────────
+    if (dist <= ALERT_RANGE && !obj._wasNear) {
+      obj._wasNear = true;
+      if (activeRevealId !== obj.id) showRevealCard(obj, dist);
+    }
+    if (dist > ALERT_RANGE) obj._wasNear = false;
+  });
+}
+
+function triggerModelReveal(url, obj) {
+  // Both visitor AND admin see the model when within 2m
+  if (S.mode === 'visitor') {
+    showRevealEffect(() => loadModel(url));
+  } else {
+    // Admin: silent load, no flash — just show what was placed here
+    loadModel(url);
+    toast('📍 ' + obj.name + ' — your placement', 'info');
+  }
+}
+
+function showRevealEffect(cb) {
+  // Flash + vibrate
+  const flash = document.createElement('div');
+  flash.style.cssText = 'position:fixed;inset:0;z-index:999;background:radial-gradient(ellipse at center,rgba(232,201,122,.35),transparent 70%);pointer-events:none;animation:flashfade .8s ease forwards';
+  if (!document.getElementById('flash-style')) {
+    const st = document.createElement('style');
+    st.id = 'flash-style';
+    st.textContent = '@keyframes flashfade{0%{opacity:0}30%{opacity:1}100%{opacity:0}}';
+    document.head.appendChild(st);
+  }
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 900);
+  if (navigator.vibrate) navigator.vibrate([80, 50, 120]);
+  toast('✨ You have reached the sacred site!', 'info');
+  if (cb) setTimeout(cb, 400);
+}
+
+function hideModel() {
+  if (modelGroup) {
+    modelGroup.visible = false;
+    document.getElementById('hcn').textContent = 'Searching…';
+    document.getElementById('hcs').textContent = 'Walk toward a beacon';
+    document.getElementById('mtext').textContent = 'ॐ';
+  }
+}
+
+// ══════════════════════════════════════════
+//  BEACONS (compass-style directional dots)
+// ══════════════════════════════════════════
+function updateBeacons() {
+  if (!S.userLat) return;
+  OBJECTS.forEach(obj => {
+    const dist = obj._dist || gpsDistance(S.userLat, S.userLng, obj.lat, obj.lng);
+    if (dist > 500) { removeBeacon(obj.id); return; } // too far
+
+    // Project relative position to screen edge
+    const bearing = getBearing(S.userLat, S.userLng, obj.lat, obj.lng);
+    const screenAngle = bearing; // simplified — in prod: subtract compass heading
+    const r = Math.min(window.innerWidth, window.innerHeight) * .38;
+    const cx = window.innerWidth / 2 + Math.sin(screenAngle * Math.PI / 180) * r;
+    const cy = window.innerHeight / 2 - Math.cos(screenAngle * Math.PI / 180) * r;
+
+    let node = beaconNodes[obj.id];
+    if (!node) {
+      node = createBeaconNode(obj);
+      beaconNodes[obj.id] = node;
+      document.body.appendChild(node);
+    }
+    node.style.left = cx + 'px';
+    node.style.top  = cy + 'px';
+    const ring = node.querySelector('.beacon-ring');
+    ring.className = 'beacon-ring' + (dist < 20 ? ' close' : '');
+    node.querySelector('.beacon-dist').textContent = dist < 1000 ? dist + 'm' : (dist / 1000).toFixed(1) + 'km';
+  });
+}
+
+function getBearing(lat1, lng1, lat2, lng2) {
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const y = Math.sin(dLng) * Math.cos(lat2 * Math.PI / 180);
+  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+    Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLng);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function createBeaconNode(obj) {
+  const cat = CAT[obj.category] || CAT.deity;
+  const el = document.createElement('div');
+  el.className = 'beacon';
+  el.id = 'beacon-' + obj.id;
+  el.innerHTML = `
+    <div class="beacon-ring" style="border-color:${cat.color}60">${cat.icon}</div>
+    <div class="beacon-dist" style="color:${cat.color}">--</div>
+  `;
+  el.onclick = () => showRevealCard(obj, obj._dist || 0);
+  return el;
+}
+
+function removeBeacon(id) {
+  const node = beaconNodes[id];
+  if (node) { node.remove(); delete beaconNodes[id]; }
+}
+
+function clearBeacons() {
+  Object.keys(beaconNodes).forEach(id => removeBeacon(id));
+}
+
+// ══════════════════════════════════════════
+//  REVEAL CARD
+// ══════════════════════════════════════════
+function showRevealCard(obj, dist) {
+  activeRevealId = obj.id;
+  revealedObjectData = obj;
+  const cat = CAT[obj.category] || CAT.deity;
+  document.getElementById('rc-emoji').textContent = cat.icon;
+  document.getElementById('rc-title').textContent = obj.name;
+  document.getElementById('rc-sub').textContent = dist < 20 ? '✨ You are here!' : dist + 'm away';
+  document.getElementById('rc-body').textContent = obj.description || 'A sacred being awaits you here.';
+  document.getElementById('rc-meta').innerHTML = `
+    <span class="rc-tag">${obj.category}</span>
+    <span class="rc-tag">Radius: ${obj.radius}m</span>
+    <span class="rc-tag">${new Date(obj.createdAt).toLocaleDateString('en-IN')}</span>
+  `;
+  document.getElementById('reveal-card').style.display = 'block';
+  toast('🕉 Sacred object discovered nearby!', 'info');
+}
+
+function closeReveal() {
+  document.getElementById('reveal-card').style.display = 'none';
+  activeRevealId = null;
+}
+
+function loadRevealedModel() {
+  if (!revealedObjectData) return;
+  if (revealedObjectData.url) {
+    S.url = revealedObjectData.url;
+    S.name = revealedObjectData.name;
+    S.mantra = revealedObjectData.mantra || S.mantra;
+  }
+  closeReveal();
+  loadModel(S.url);
+  toast('Loading ' + revealedObjectData.name + '…', 'info');
+}
+
+// ══════════════════════════════════════════
+//  ADMIN — DROP OBJECT
+// ══════════════════════════════════════════
+let dropRadius = 20;
+
+function adjustRadius(delta) {
+  dropRadius = Math.max(5, Math.min(200, dropRadius + delta));
+  document.getElementById('ap-rad-val').textContent = dropRadius + 'm';
+}
+
+function toggleAdminPanel() {
+  const p = document.getElementById('admin-panel');
+  p.classList.toggle('open');
+}
+function closeAdminPanel() {
+  document.getElementById('admin-panel').classList.remove('open');
+}
+
+function dropObject() {
+  // Use real GPS if available, else simulated
+  const lat = S.userLat || S.simLat;
+  const lng = S.userLng || S.simLng;
+  if (!lat) { toast('GPS not ready yet — wait a moment', 'warn'); return; }
+
+  const name = document.getElementById('ap-name').value.trim();
+  const desc = document.getElementById('ap-desc').value.trim();
+  const cat  = document.getElementById('ap-cat').value;
+  const url  = document.getElementById('ap-url').value.trim() || S.url;
+
+  if (!name) { toast('Please enter an object name', 'warn'); return; }
+
+  const obj = {
+    id:          Date.now().toString(),
+    name,
+    description: desc,
+    category:    cat,
+    radius:      dropRadius,
+    lat,
+    lng,
+    url,
+    mantra:      S.mantra,
+    createdAt:   Date.now(),
+    createdBy:   'admin',
+  };
+
+  OBJECTS.push(obj);
+  saveObjects();
+  closeAdminPanel();
+  updateBeacons();
+
+  // Reset sim so next visit starts fresh journey
+  S.simArrived = false;
+  S.simLat = null;
+
+  document.getElementById('ap-name').value = '';
+  document.getElementById('ap-desc').value = '';
+  document.getElementById('ap-url').value  = '';
+
+  toast('✅ ' + name + ' dropped at GPS location!', 'info');
+}
+
+function saveObjects() {
+  localStorage.setItem('devlok_objects', JSON.stringify(OBJECTS));
+}
+
+function clearAllObjects() {
+  if (!confirm('Delete all placed objects?')) return;
+  OBJECTS = [];
+  saveObjects();
+  clearBeacons();
+  drawMap();
+  toast('All objects cleared', 'info');
+}
+
+function exportObjects() {
+  const data = JSON.stringify(OBJECTS, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'devlok_objects_' + Date.now() + '.json';
+  a.click();
+}
+
+function importObjects() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        OBJECTS = [...OBJECTS, ...imported];
+        saveObjects(); drawMap(); updateBeacons();
+        toast('Imported ' + imported.length + ' objects', 'info');
+      } catch { toast('Invalid JSON file', 'err'); }
+    };
+    reader.readAsText(e.target.files[0]);
+  };
+  input.click();
+}
+
+// ══════════════════════════════════════════
+//  ADMIN MAP
+// ══════════════════════════════════════════
+function showAdminMap() {
+  document.getElementById('admin-map').style.display = 'flex';
+  setTimeout(drawMap, 100);
+}
+function closeAdminMap() {
+  document.getElementById('admin-map').style.display = 'none';
+}
+
+function drawMap() {
+  const canvas = document.getElementById('map-canvas');
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Dark background
+  ctx.fillStyle = '#0d0a04';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(200,169,110,.06)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+  if (OBJECTS.length === 0) {
+    ctx.fillStyle = 'rgba(200,169,110,.3)';
+    ctx.font = '14px Philosopher,serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No objects placed yet', W / 2, H / 2);
+    return;
+  }
+
+  // Find bounds
+  const lats = OBJECTS.map(o => o.lat);
+  const lngs = OBJECTS.map(o => o.lng);
+  if (S.userLat) { lats.push(S.userLat); lngs.push(S.userLng); }
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+  const pad = 60;
+
+  function toXY(lat, lng) {
+    const rangeL = maxLng - minLng || .001, rangeA = maxLat - minLat || .001;
+    return {
+      x: pad + ((lng - minLng) / rangeL) * (W - pad * 2),
+      y: H - pad - ((lat - minLat) / rangeA) * (H - pad * 2),
+    };
+  }
+
+  // Draw radius circles + objects
+  OBJECTS.forEach(obj => {
+    const { x, y } = toXY(obj.lat, obj.lng);
+    const cat = CAT[obj.category] || CAT.deity;
+
+    // Radius ring
+    const mpp = 111320 * Math.cos(obj.lat * Math.PI / 180);
+    const lngPerM = 1 / mpp;
+    const latRange = maxLat - minLat || .001;
+    const lngRange = maxLng - minLng || .001;
+    const rx = (obj.radius * lngPerM / lngRange) * (W - pad * 2);
+    const ry = (obj.radius / 111320 / latRange) * (H - pad * 2);
+
+    ctx.beginPath();
+    ctx.ellipse(x, y, Math.max(rx, 8), Math.max(ry, 8), 0, 0, Math.PI * 2);
+    ctx.strokeStyle = cat.color + '30';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = cat.color + '08';
+    ctx.fill();
+
+    // Dot
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = cat.color;
+    ctx.fill();
+    ctx.strokeStyle = '#0d0a04'; ctx.lineWidth = 2; ctx.stroke();
+
+    // Label
+    ctx.fillStyle = 'rgba(245,237,216,.7)';
+    ctx.font = '10px Philosopher,serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(obj.name.slice(0, 18), x, y + 18);
+  });
+
+  // User position
+  if (S.userLat) {
+    const { x, y } = toXY(S.userLat, S.userLng);
+    ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.strokeStyle = '#0d0a04'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.6)';
+    ctx.font = '10px Philosopher,serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('You', x, y + 17);
+  }
+}
+
+// ══════════════════════════════════════════
+//  THREE.JS
+// ══════════════════════════════════════════
+function initThree() {
+  const canvas = document.getElementById('tc');
+  const W = innerWidth, H = innerHeight;
+
+  scene = new THREE.Scene();
+  if (isDesk) scene.fog = new THREE.FogExp2(0x0c0806, .028);
+  cam = new THREE.PerspectiveCamera(75, W / H, .01, 200);
+  cam.position.set(0, 1.6, 0);
+  raycaster = new THREE.Raycaster();
+
+  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.25;
+
+  scene.add(new THREE.AmbientLight(0xffd8b0, .55));
+  const sun = new THREE.DirectionalLight(0xfff5d0, 1.6);
+  sun.position.set(5, 12, 4); sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -.001;
+  sun.shadow.camera.left = -10; sun.shadow.camera.right = 10;
+  sun.shadow.camera.top = 10; sun.shadow.camera.bottom = -10;
+  scene.add(sun);
+  scene.add(new THREE.DirectionalLight(0xff8822, .4).position.set(-6, 3, -6).constructor ? new THREE.DirectionalLight(0xff8822, .4) : null);
+  const rim = new THREE.DirectionalLight(0xff8822, .4); rim.position.set(-6, 3, -6); scene.add(rim);
+  scene.add(new THREE.HemisphereLight(0xffe0a0, 0x112030, .4));
+  const glow = new THREE.PointLight(0xe8c97a, .9, 12); glow.position.set(0, 3, -4); scene.add(glow);
+
+  // Invisible floor for raycasting
+  floorPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(40, 40),
+    new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
+  );
+  floorPlane.rotation.x = -Math.PI / 2;
+  scene.add(floorPlane);
+
+  // Shadow blob
+  const sb = new THREE.Mesh(
+    new THREE.CircleGeometry(.7, 32),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .22, side: THREE.DoubleSide })
+  );
+  sb.rotation.x = -Math.PI / 2; sb.position.set(0, .003, -4);
+  scene.add(sb); scene.userData.sb = sb;
+
+  // Sacred rings
+  [.8, 1.2, 1.7, 2.3].forEach((r, i) => {
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(r - .012, r + .012, 64),
+      new THREE.MeshBasicMaterial({ color: 0xe8c97a, transparent: true, opacity: .055 + i * .01, side: THREE.DoubleSide })
+    );
+    ring.rotation.x = -Math.PI / 2; ring.position.set(0, .002, -4);
+    scene.add(ring); scene.userData['ring' + i] = ring;
+  });
+
+  // Sparkles
+  const sg = new THREE.BufferGeometry();
+  const sp = new Float32Array(500 * 3);
+  for (let i = 0; i < 500; i++) { sp[i*3]=(Math.random()-.5)*20; sp[i*3+1]=Math.random()*7; sp[i*3+2]=(Math.random()-.5)*20-3; }
+  sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+  scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ size: .02, color: 0xFFDD88, transparent: true, opacity: .26 })));
+
+  clock = new THREE.Clock();
+  if (!isDesk) setupGyro();
+  addEventListener('mousemove', e => { mx=(e.clientX/innerWidth-.5)*2; my=(e.clientY/innerHeight-.5)*2; });
+  addEventListener('touchmove', onTM, { passive: true });
+  addEventListener('touchstart', onTS, { passive: true });
+  addEventListener('touchend', () => { touchStartDist = null; }, { passive: true });
+  addEventListener('click', onTap);
+  addEventListener('resize', () => { cam.aspect=innerWidth/innerHeight; cam.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+}
+
+// ══════════════════════════════════════════
+//  INPUT
+// ══════════════════════════════════════════
+let lastTap = 0;
+function onTap(e) {
+  if (!modelGroup) return;
+  const now = Date.now(); if (now - lastTap < 300) return; lastTap = now;
+  if (['BUTTON','INPUT','SELECT'].includes(e.target.tagName)) return;
+  if (e.target.closest('#lore,#reveal-card,#hud,#anim-bar,#admin-panel,#guide,#toast')) return;
+
+  const ndc = new THREE.Vector2(
+    (e.clientX / innerWidth) * 2 - 1,
+    -(e.clientY / innerHeight) * 2 + 1
+  );
+  raycaster.setFromCamera(ndc, cam);
+  const hits = raycaster.intersectObject(floorPlane);
+  if (hits.length > 0) {
+    const pt = hits[0].point;
+    modelGroup.userData.tX = pt.x;
+    modelGroup.userData.tZ = pt.z;
+    [0,1,2,3].forEach(i => { const r=scene.userData['ring'+i]; if(r){r.position.x=pt.x;r.position.z=pt.z;} });
+    const sb = scene.userData.sb; if (sb) { sb.position.x=pt.x; sb.position.z=pt.z; }
+    toast('Sacred being placed ✓', 'info');
+  }
+}
+
+function onTS(e) { if(e.touches.length===2) touchStartDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+function onTM(e) {
+  if (e.touches.length===1) { mx=(e.touches[0].clientX/innerWidth-.5)*2; my=(e.touches[0].clientY/innerHeight-.5)*2; }
+  else if (e.touches.length===2 && touchStartDist && modelGroup) {
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    scaleModel(d/touchStartDist); touchStartDist=d;
+  }
+}
+
+function scaleModel(f) { if(!modelGroup)return; currentScale=Math.max(.15,Math.min(6,currentScale*f)); modelGroup.scale.setScalar(currentScale); }
+function resetScale()  { if(!modelGroup)return; currentScale=1; modelGroup.scale.setScalar(1); }
+
+// ══════════════════════════════════════════
+//  GLTF LOADER
+// ══════════════════════════════════════════
+function loadModel(url) {
+  if (!url) { toast('No model URL — pick a preset or paste a .glb', 'err'); hideLoad(); return; }
+  showScreen('loading'); setLoad('Loading model…', 10);
+
+  if (modelGroup) { scene.remove(modelGroup); modelGroup = null; }
+  animActions = [];
+  document.getElementById('anim-bar').innerHTML = '';
+  document.getElementById('anim-bar').style.display = 'none';
+
+  new THREE.GLTFLoader().load(
+    url,
+    gltf => {
+      setLoad('Processing…', 88);
+      const model = gltf.scene;
+      const box = new THREE.Box3().setFromObject(model);
+      const sz = box.getSize(new THREE.Vector3());
+      model.scale.setScalar(1.8 / Math.max(sz.x, sz.y, sz.z));
+      box.setFromObject(model);
+      const ctr = box.getCenter(new THREE.Vector3());
+      model.position.sub(ctr);
+      box.setFromObject(model);
+      model.position.y -= box.min.y;
+      model.traverse(n => { if(n.isMesh){n.castShadow=true;n.receiveShadow=true;if(n.material)n.material.envMapIntensity=.8;} });
+
+      modelGroup = new THREE.Group();
+      modelGroup.add(model);
+      modelGroup.position.set(0, 0, -4);
+      modelGroup.userData.tX = 0; modelGroup.userData.tZ = -4;
+      currentScale = 1;
+      scene.add(modelGroup);
+      addAura(modelGroup, sz);
+
+      if (gltf.animations?.length) {
+        mixer = new THREE.AnimationMixer(model);
+        const bar = document.getElementById('anim-bar');
+        bar.style.display = 'flex';
+        gltf.animations.forEach((clip, i) => {
+          const action = mixer.clipAction(clip);
+          animActions.push(action);
+          const btn = document.createElement('div');
+          btn.className = 'ab' + (i===0 ? ' on' : '');
+          btn.textContent = clip.name || ('Anim '+i);
+          btn.onclick = () => playAnim(i);
+          bar.appendChild(btn);
+        });
+        animActions[0].play();
+      } else { mixer = null; }
+
+      hideLoad();
+      showAR(true);
+    },
+    xhr => { if(xhr.lengthComputable) setLoad('Downloading… '+Math.round(xhr.loaded/1024)+'KB',(xhr.loaded/xhr.total)*78+10); },
+    err => {
+      console.error(err);
+      const fallback = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb';
+      toast('Could not load model — falling back to Fox', 'err');
+      if (url !== fallback) setTimeout(() => loadModel(fallback), 1600);
+      else { hideLoad(); showAR(); }
+    }
+  );
+}
+
+function addAura(group, sz) {
+  const count=220, r=Math.max(sz.x,sz.z)*.55+.45;
+  const geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(count*3), col=new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const a=Math.random()*Math.PI*2;
+    pos[i*3]=Math.cos(a)*(r+Math.random()*.6);pos[i*3+1]=Math.random()*sz.y*.9;pos[i*3+2]=Math.sin(a)*(r+Math.random()*.6);
+    col[i*3]=.9+Math.random()*.1;col[i*3+1]=.7+Math.random()*.12;col[i*3+2]=.1+Math.random()*.3;
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.034,vertexColors:true,transparent:true,opacity:.55}));
+  group.userData.aura=pts; group.add(pts);
+}
+
+function playAnim(i) {
+  animActions.forEach((a,j)=>j===i?a.reset().fadeIn(.3).play():a.fadeOut(.3));
+  document.querySelectorAll('.ab').forEach((b,j)=>b.classList.toggle('on',j===i));
+}
+
+// ══════════════════════════════════════════
+//  SHOW AR
+// ══════════════════════════════════════════
+function showAR(modelReady = true) {
+  document.getElementById('ar-wrap').style.display = 'block';
+  document.getElementById('hud').style.display = 'block';
+  document.getElementById('admin-btn').style.display = S.mode === 'admin' ? 'flex' : 'none';
+
+  if (modelReady) {
+    document.getElementById('hcn').textContent = S.name;
+    document.getElementById('hcs').textContent = S.sub;
+    document.getElementById('mtext').textContent = S.mantra;
+    document.getElementById('tap-hint').textContent =
+      S.mode === 'admin' ? 'TAP FLOOR TO PLACE · 📍 DROP GPS OBJECT' : 'TAP FLOOR TO PLACE · PINCH TO SCALE';
+  } else {
+    document.getElementById('hcn').textContent = 'Searching…';
+    document.getElementById('hcs').textContent = S.mode === 'admin'
+      ? 'Walk to a placed object to preview it'
+      : 'Walk toward a beacon to reveal';
+    document.getElementById('mtext').textContent = 'ॐ';
+    document.getElementById('tap-hint').textContent = 'FOLLOW THE BEACONS · SACRED BEINGS AWAIT';
+    startSearchingEffect();
+  }
+
+  // Single guarded proximity interval
+  if (!S.proxInterval) {
+    S.proxInterval = setInterval(() => {
+      checkProximity();
+      updateBeacons();
+      if (mapOpen) drawMap();
+    }, 2000);
+  }
+  // Immediate first check
+  checkProximity();
+  updateBeacons();
+
+  // Show sim walk button on desktop for testing
+  if (isDesk) {
+    const sb = document.getElementById('sim-btn');
+    if (sb) sb.style.display = 'flex';
+  }
+
+  animate();
+}
+
+function simulateWalk() {
+  // Instantly teleport to first unvisited object's exact location for testing
+  const unvisited = OBJECTS.find(o => !o._modelShown);
+  if (!unvisited) { toast('No objects placed yet — use Admin to drop one first', 'warn'); return; }
+  S.userLat = unvisited.lat;
+  S.userLng = unvisited.lng;
+  if (S.simLat !== undefined) S.simLat = unvisited.lat;
+  if (S.simLng !== undefined) S.simLng = unvisited.lng;
+  toast('🚶 Teleported to ' + unvisited.name + '…', 'info');
+  checkProximity();
+  updateBeacons();
+}
+
+// ══════════════════════════════════════════
+//  LORE
+// ══════════════════════════════════════════
+function openLore() {
+  document.getElementById('ln').textContent = S.name;
+  document.getElementById('ls').textContent = S.sub;
+  document.getElementById('lm').textContent = S.mantra;
+  document.getElementById('lt').textContent = S.lore || 'An ancient sacred being.';
+  document.getElementById('lf').innerHTML = `
+    <div class="lf"><div class="lf-label">Temple</div><div class="lf-val">${S.temple||'—'}</div></div>
+    <div class="lf"><div class="lf-label">Era</div><div class="lf-val">${S.era||'—'}</div></div>
+    <div class="lf"><div class="lf-label">Mode</div><div class="lf-val">${S.mode}</div></div>
+    <div class="lf"><div class="lf-label">Objects</div><div class="lf-val">${OBJECTS.length} placed</div></div>
+  `;
+  document.getElementById('lore').classList.add('open');
+}
+function closeLore() { document.getElementById('lore').classList.remove('open'); }
+
+// ══════════════════════════════════════════
+//  AUDIO
+// ══════════════════════════════════════════
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  [[174,.05],[432,.03],[528,.024]].forEach(([freq,vol],i)=>{
+    const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),pan=audioCtx.createStereoPanner(),filt=audioCtx.createBiquadFilter();
+    const ib=audioCtx.createBuffer(2,audioCtx.sampleRate*3,audioCtx.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=ib.getChannelData(ch);for(let s=0;s<ib.length;s++)d[s]=(Math.random()*2-1)*Math.pow(1-s/ib.length,2);}
+    const rev=audioCtx.createConvolver();rev.buffer=ib;
+    const lfo=audioCtx.createOscillator(),lfoG=audioCtx.createGain();
+    lfo.frequency.value=.1+i*.05;lfoG.gain.value=1.1;lfo.connect(lfoG);lfoG.connect(osc.frequency);lfo.start();
+    osc.type=i===1?'triangle':'sine';osc.frequency.value=freq;
+    filt.type='lowpass';filt.frequency.value=650;
+    gain.gain.setValueAtTime(0,audioCtx.currentTime);gain.gain.linearRampToValueAtTime(vol,audioCtx.currentTime+3);
+    pan.pan.value=(i-1)*.4;
+    osc.connect(filt);filt.connect(rev);rev.connect(gain);filt.connect(gain);gain.connect(pan);pan.connect(audioCtx.destination);
+    osc.start();oscNodes.push({osc,gain});
+  });
+  scheduleBell();
+}
+function scheduleBell(){
+  if(!audioCtx)return;
+  const t=audioCtx.currentTime;
+  [528,792,1056].forEach((f,i)=>{
+    const b=audioCtx.createOscillator(),bg=audioCtx.createGain();
+    const ib=audioCtx.createBuffer(1,audioCtx.sampleRate*3,audioCtx.sampleRate);
+    const d=ib.getChannelData(0);for(let s=0;s<ib.length;s++)d[s]=(Math.random()*2-1)*Math.pow(1-s/ib.length,1.5);
+    const br=audioCtx.createConvolver();br.buffer=ib;
+    b.type='sine';b.frequency.value=f;
+    const o=t+i*.14;
+    bg.gain.setValueAtTime(0,o);bg.gain.linearRampToValueAtTime(.07,o+.01);bg.gain.exponentialRampToValueAtTime(.001,o+3.2);
+    b.connect(bg);bg.connect(br);br.connect(audioCtx.destination);bg.connect(audioCtx.destination);
+    b.start(o);b.stop(o+5);
+  });
+  setTimeout(scheduleBell,9000+Math.random()*7000);
+}
+function toggleAudio(){
+  muted=!muted;document.getElementById('abtn').textContent=muted?'🔇':'🔊';
+  if(!audioCtx)return;
+  oscNodes.forEach(({gain})=>gain.gain.linearRampToValueAtTime(muted?0:.03,audioCtx.currentTime+.5));
+}
+
+// ══════════════════════════════════════════
+//  GYROSCOPE
+// ══════════════════════════════════════════
+function setupGyro(){
+  if(typeof DeviceOrientationEvent?.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(p=>{if(p==='granted')addEventListener('deviceorientation',e=>{devBeta=e.beta||45;devGamma=e.gamma||0;});}).catch(()=>{});
+  } else addEventListener('deviceorientation',e=>{devBeta=e.beta||45;devGamma=e.gamma||0;});
+}
+
+// ══════════════════════════════════════════
+//  GUIDE
+// ══════════════════════════════════════════
+function showGuide(){ document.getElementById('guide').style.display='flex'; }
+function hideGuide(){ document.getElementById('guide').style.display='none'; }
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function toast(msg, type='err'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=type;el.style.display='block';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',4500);
+}
+// ══════════════════════════════════════════
+//  SEARCHING PARTICLE EFFECT (visitor waiting)
+// ══════════════════════════════════════════
+let searchParticles = null;
+let searchRings = [];
+
+function startSearchingEffect() {
+  if (!scene) return;
+
+  // Floating question-mark particles in scene while searching
+  const geo = new THREE.BufferGeometry();
+  const count = 80;
+  const pos = new Float32Array(count * 3);
+  const col = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = 1.5 + Math.random() * 3;
+    pos[i*3]   = Math.cos(a) * r;
+    pos[i*3+1] = Math.random() * 3;
+    pos[i*3+2] = Math.sin(a) * r - 3;
+    // Dim greenish searching colour
+    col[i*3] = .1 + Math.random() * .2;
+    col[i*3+1] = .6 + Math.random() * .3;
+    col[i*3+2] = .3 + Math.random() * .2;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  searchParticles = new THREE.Points(geo, new THREE.PointsMaterial({
+    size: .05, vertexColors: true, transparent: true, opacity: .5
+  }));
+  scene.add(searchParticles);
+
+  // Expanding ground rings (sonar effect)
+  for (let i = 0; i < 3; i++) {
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(.05, .12, 48),
+      new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: .6, side: THREE.DoubleSide })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(0, .01, -2.5);
+    ring.userData.phase = i * (Math.PI * 2 / 3);
+    ring.userData.baseR = 0;
+    scene.add(ring);
+    searchRings.push(ring);
+  }
+}
+
+function stopSearchingEffect() {
+  if (searchParticles) { scene.remove(searchParticles); searchParticles = null; }
+  searchRings.forEach(r => scene.remove(r));
+  searchRings = [];
+}
+
+// ══════════════════════════════════════════
+//  BREADCRUMB TRAIL
+// ══════════════════════════════════════════
+let breadcrumbs = [];          // [{lat,lng,ts}]
+let breadcrumbLine = null;
+
+function recordBreadcrumb() {
+  if (!S.userLat) return;
+  const last = breadcrumbs[breadcrumbs.length - 1];
+  // Only record if moved more than 0.5m
+  if (last && gpsDistance(S.userLat, S.userLng, last.lat, last.lng) < 0.5) return;
+  breadcrumbs.push({ lat: S.userLat, lng: S.userLng, ts: Date.now() });
+  if (breadcrumbs.length > 200) breadcrumbs.shift(); // keep last 200 points
+}
+
+// ══════════════════════════════════════════
+//  MAP — complete rewrite with treasure feel
+// ══════════════════════════════════════════
+let mapOpen = false;
+let mapAnimFrame = null;
+let mapT = 0;
+
+// Override showAdminMap to use animated map
+function showAdminMap() {
+  mapOpen = true;
+  document.getElementById('admin-map').style.display = 'flex';
+  recordBreadcrumb(); // snapshot current pos
+  requestAnimationFrame(animateMap);
+}
+function closeAdminMap() {
+  mapOpen = false;
+  document.getElementById('admin-map').style.display = 'none';
+  if (mapAnimFrame) { cancelAnimationFrame(mapAnimFrame); mapAnimFrame = null; }
+}
+
+function animateMap(ts) {
+  if (!mapOpen) return;
+  mapT = ts / 1000;
+  drawMap();
+  mapAnimFrame = requestAnimationFrame(animateMap);
+}
+
+function drawMap() {
+  const canvas = document.getElementById('map-canvas');
+  const wrap   = canvas.parentElement;
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // ── Parchment / dark map background ──────────────────────────
+  const bgGrad = ctx.createRadialGradient(W*.5, H*.4, 0, W*.5, H*.4, Math.max(W,H)*.7);
+  bgGrad.addColorStop(0,  '#1a1208');
+  bgGrad.addColorStop(.6, '#100c05');
+  bgGrad.addColorStop(1,  '#0a0804');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Noise texture overlay (parchment feel)
+  for (let i = 0; i < 600; i++) {
+    const nx = Math.random() * W, ny = Math.random() * H;
+    ctx.fillStyle = `rgba(200,160,80,${Math.random() * .018})`;
+    ctx.fillRect(nx, ny, 1, 1);
+  }
+
+  // Grid lines (faint map grid)
+  ctx.strokeStyle = 'rgba(200,160,80,.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 36) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 36) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Compass rose (top-right)
+  drawCompass(ctx, W - 42, 42, 28);
+
+  if (OBJECTS.length === 0 && !S.userLat) {
+    ctx.fillStyle = 'rgba(200,160,80,.35)';
+    ctx.font = '13px Philosopher,serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No sacred objects placed yet', W/2, H/2 - 10);
+    ctx.fillStyle = 'rgba(200,160,80,.2)';
+    ctx.font = '11px Philosopher,serif';
+    ctx.fillText('Admin: drop objects to begin the hunt', W/2, H/2 + 12);
+    return;
+  }
+
+  // Build coordinate bounds
+  const allLats = OBJECTS.map(o => o.lat);
+  const allLngs = OBJECTS.map(o => o.lng);
+  if (S.userLat)  { allLats.push(S.userLat); allLngs.push(S.userLng); }
+  breadcrumbs.forEach(b => { allLats.push(b.lat); allLngs.push(b.lng); });
+
+  const pad = 55;
+  let minLat = Math.min(...allLats), maxLat = Math.max(...allLats);
+  let minLng = Math.min(...allLngs), maxLng = Math.max(...allLngs);
+
+  // Ensure a minimum map range so single point isn't a dot
+  const minRange = 0.0003;
+  if (maxLat - minLat < minRange) { const mid=(maxLat+minLat)/2; minLat=mid-minRange/2; maxLat=mid+minRange/2; }
+  if (maxLng - minLng < minRange) { const mid=(maxLng+minLng)/2; minLng=mid-minRange/2; maxLng=mid+minRange/2; }
+
+  function toXY(lat, lng) {
+    return {
+      x: pad + ((lng - minLng) / (maxLng - minLng)) * (W - pad*2),
+      y: H - pad - ((lat - minLat) / (maxLat - minLat)) * (H - pad*2)
+    };
+  }
+
+  // ── Breadcrumb trail (where user has walked) ─────────────────
+  if (breadcrumbs.length > 1) {
+    ctx.save();
+    ctx.beginPath();
+    breadcrumbs.forEach((b, i) => {
+      const { x, y } = toXY(b.lat, b.lng);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = 'rgba(100,200,120,.3)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([3, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Breadcrumb dots
+    breadcrumbs.forEach((b, i) => {
+      const { x, y } = toXY(b.lat, b.lng);
+      const age = (Date.now() - b.ts) / 60000; // minutes old
+      const alpha = Math.max(0.08, 0.35 - age * 0.05);
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(100,220,130,${alpha})`;
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  // ── Path lines from user to each undiscovered object ─────────
+  if (S.userLat) {
+    const userXY = toXY(S.userLat, S.userLng);
+    OBJECTS.forEach(obj => {
+      if (obj._modelShown) return; // already found — skip path
+      const { x, y } = toXY(obj.lat, obj.lng);
+      const cat = CAT[obj.category] || CAT.deity;
+      const dist = obj._dist || gpsDistance(S.userLat, S.userLng, obj.lat, obj.lng);
+
+      // Animated dashed path — treasure map style
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(userXY.x, userXY.y);
+      ctx.lineTo(x, y);
+
+      // Dash animation offset driven by mapT
+      const dashOffset = (mapT * 12) % 20;
+      ctx.setLineDash([6, 14]);
+      ctx.lineDashOffset = -dashOffset;
+
+      // Colour fades from user (bright) to target (dim)
+      const lineGrad = ctx.createLinearGradient(userXY.x, userXY.y, x, y);
+      lineGrad.addColorStop(0,   cat.color + 'CC');
+      lineGrad.addColorStop(.6,  cat.color + '44');
+      lineGrad.addColorStop(1,   cat.color + '18');
+      ctx.strokeStyle = lineGrad;
+      ctx.lineWidth = dist < 10 ? 2.5 : 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // Distance label on path midpoint
+      const mx2 = (userXY.x + x) / 2, my2 = (userXY.y + y) / 2;
+      const distStr = dist < 1000 ? dist + 'm' : (dist/1000).toFixed(1)+'km';
+      ctx.save();
+      ctx.font = 'bold 9px Philosopher,serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = cat.color + 'CC';
+      // Small pill background
+      const tw = ctx.measureText(distStr).width + 8;
+      ctx.fillStyle = 'rgba(10,8,4,.75)';
+      ctx.beginPath(); ctx.roundRect(mx2-tw/2, my2-7, tw, 13, 3); ctx.fill();
+      ctx.fillStyle = cat.color;
+      ctx.fillText(distStr, mx2, my2 + 3);
+      ctx.restore();
+    });
+  }
+
+  // ── Object markers ───────────────────────────────────────────
+  OBJECTS.forEach(obj => {
+    const { x, y } = toXY(obj.lat, obj.lng);
+    const cat = CAT[obj.category] || CAT.deity;
+    const found = !!obj._modelShown;
+
+    // Radius fog-of-war circle
+    const mpp = 111320 * Math.cos(obj.lat * Math.PI / 180);
+    const latRange = maxLat - minLat || .001;
+    const lngRange = maxLng - minLng || .001;
+    const rx = (obj.radius / mpp / lngRange) * (W - pad*2);
+    const ry = (obj.radius / 111320 / latRange) * (H - pad*2);
+    const avgR = (rx + ry) / 2;
+
+    if (!found) {
+      // Fog-of-war shroud (undiscovered)
+      const fogGrad = ctx.createRadialGradient(x, y, avgR*.3, x, y, avgR*1.4);
+      fogGrad.addColorStop(0,   'rgba(15,10,4,.0)');
+      fogGrad.addColorStop(.5,  'rgba(15,10,4,.4)');
+      fogGrad.addColorStop(1,   'rgba(15,10,4,.85)');
+      ctx.beginPath(); ctx.arc(x, y, avgR * 1.4, 0, Math.PI*2);
+      ctx.fillStyle = fogGrad; ctx.fill();
+
+      // Pulsing alert ring — animated
+      const pulse = .5 + .5 * Math.sin(mapT * 2.5 + obj.lat * 100);
+      ctx.beginPath(); ctx.arc(x, y, avgR * (.7 + pulse * .3), 0, Math.PI*2);
+      ctx.strokeStyle = cat.color + Math.floor(pulse * 80 + 20).toString(16).padStart(2,'0');
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    } else {
+      // FOUND — show clear glow
+      const foundGrad = ctx.createRadialGradient(x, y, 0, x, y, avgR);
+      foundGrad.addColorStop(0,  cat.color + '28');
+      foundGrad.addColorStop(1,  cat.color + '00');
+      ctx.beginPath(); ctx.arc(x, y, avgR, 0, Math.PI*2);
+      ctx.fillStyle = foundGrad; ctx.fill();
+    }
+
+    // Outer glow
+    const glowR = found ? 14 : 10;
+    const glowPulse = found ? 1 : (.6 + .4 * Math.sin(mapT * 3 + obj.lng * 50));
+    ctx.save();
+    ctx.shadowColor   = cat.color;
+    ctx.shadowBlur    = 12 * glowPulse;
+    ctx.beginPath(); ctx.arc(x, y, glowR, 0, Math.PI*2);
+    ctx.fillStyle = found ? cat.color : cat.color + '99';
+    ctx.fill();
+    ctx.restore();
+
+    // Inner dot
+    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2);
+    ctx.fillStyle = found ? '#fff' : '#0a0804';
+    ctx.fill();
+
+    // Icon label
+    ctx.font = found ? '11px serif' : '9px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(cat.icon, x, y + (found ? 22 : 20));
+
+    // Name (hidden if not found and far)
+    if (found || (obj._dist && obj._dist < 50)) {
+      ctx.font = `${found ? 10 : 9}px Philosopher,serif`;
+      ctx.fillStyle = found ? 'rgba(245,237,216,.85)' : 'rgba(245,237,216,.45)';
+      ctx.fillText(obj.name.slice(0, 16), x, y + (found ? 34 : 30));
+    } else {
+      // Mystery label
+      ctx.font = '9px Philosopher,serif';
+      ctx.fillStyle = 'rgba(200,160,80,.3)';
+      ctx.fillText('???', x, y + 20);
+    }
+
+    // "FOUND" badge
+    if (found) {
+      ctx.save();
+      ctx.fillStyle = cat.color;
+      ctx.beginPath(); ctx.roundRect(x-14, y-22, 28, 12, 3); ctx.fill();
+      ctx.fillStyle = '#0a0804';
+      ctx.font = 'bold 7px Philosopher,serif';
+      ctx.fillText('FOUND', x, y-13);
+      ctx.restore();
+    }
+  });
+
+  // ── User position ────────────────────────────────────────────
+  if (S.userLat) {
+    const { x, y } = toXY(S.userLat, S.userLng);
+    const pulse = .5 + .5 * Math.sin(mapT * 4);
+
+    // Accuracy halo
+    ctx.beginPath(); ctx.arc(x, y, 14 + pulse * 6, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${.04 + pulse * .04})`;
+    ctx.fill();
+
+    // Direction cone (simplified — points "up" = north)
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    ctx.moveTo(0, -16); ctx.lineTo(-7, 0); ctx.lineTo(7, 0);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,255,255,.7)';
+    ctx.fill();
+    ctx.restore();
+
+    // White dot
+    ctx.save();
+    ctx.shadowColor = '#fff'; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2);
+    ctx.fillStyle = '#ffffff'; ctx.fill();
+    ctx.restore();
+
+    ctx.font = 'bold 9px Philosopher,serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,.7)';
+    ctx.fillText('YOU', x, y + 17);
+  }
+
+  // ── Scale bar ────────────────────────────────────────────────
+  drawScaleBar(ctx, W, H, minLat, maxLat, minLng, maxLng, pad);
+
+  // ── Title ────────────────────────────────────────────────────
+  ctx.font = 'bold 11px Philosopher,serif';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(200,160,80,.45)';
+  ctx.fillText('⛩  SACRED HUNT', pad, pad - 8);
+
+  const found = OBJECTS.filter(o => o._modelShown).length;
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(200,160,80,.45)';
+  ctx.fillText(found + ' / ' + OBJECTS.length + ' discovered', W - pad, pad - 8);
+}
+
+function drawCompass(ctx, cx, cy, r) {
+  // Simple compass rose
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.strokeStyle = 'rgba(200,160,80,.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.stroke();
+
+  const dirs = [['N',-r+6,0],['S',r-6,0],['E',0,r-6],['W',0,-r+6]];
+  ctx.font = 'bold 8px Philosopher,serif';
+  dirs.forEach(([label, dy, dx]) => {
+    ctx.fillStyle = label==='N'?'rgba(232,100,4,.8)':'rgba(200,160,80,.45)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, dx, dy);
+  });
+  // Needle
+  ctx.beginPath(); ctx.moveTo(0,-r*.55); ctx.lineTo(3,0); ctx.lineTo(0,r*.55); ctx.lineTo(-3,0); ctx.closePath();
+  ctx.fillStyle='rgba(232,100,4,.5)';ctx.fill();
+  ctx.restore();
+}
+
+function drawScaleBar(ctx, W, H, minLat, maxLat, minLng, maxLng, pad) {
+  // metres per pixel
+  const mPerPx = gpsDistance(minLat, minLng, minLat, maxLng) / (W - pad*2);
+  let barM = 10;
+  const steps = [1,2,5,10,20,50,100,200,500,1000,2000];
+  for (const s of steps) { if (s / mPerPx > 60) { barM = s; break; } }
+  const barPx = barM / mPerPx;
+
+  const bx = pad, by = H - pad + 16;
+  ctx.save();
+  ctx.fillStyle = 'rgba(200,160,80,.5)';
+  ctx.fillRect(bx, by, barPx, 2);
+  ctx.fillRect(bx, by-3, 1.5, 8);
+  ctx.fillRect(bx+barPx, by-3, 1.5, 8);
+  ctx.font = '9px Philosopher,serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(200,160,80,.45)';
+  ctx.fillText(barM < 1000 ? barM+'m' : (barM/1000)+'km', bx + barPx/2, by + 12);
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════
+//  ANIMATE
+// ══════════════════════════════════════════
+let lastBreadcrumb = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta(); T += delta;
+
+  const tx = isDesk ? mx*.48 : (devGamma/45)*.62;
+  const ty = isDesk ? -my*.22 : ((devBeta-45)/35)*.38;
+  camY += (tx - camY) * .045;
+  camX += (ty - camX) * .045;
+  cam.rotation.order = 'YXZ';
+  cam.rotation.y = camY;
+  cam.rotation.x = camX;
+
+  if (mixer) mixer.update(delta);
+
+  // ── Searching sonar rings ──────────────────────────────────
+  if (searchRings.length) {
+    searchRings.forEach(ring => {
+      const progress = ((T * .45 + ring.userData.phase / (Math.PI*2)) % 1);
+      const r = progress * 3.5;
+      ring.scale.set(r + .1, 1, r + .1);
+      ring.material.opacity = (1 - progress) * .5;
+    });
+    if (searchParticles) {
+      const pos = searchParticles.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        pos.setY(i, pos.getY(i) + delta * .06);
+        if (pos.getY(i) > 3) pos.setY(i, 0);
+      }
+      pos.needsUpdate = true;
+      searchParticles.rotation.y += delta * .04;
+    }
+  }
+
+  // ── Model idle ─────────────────────────────────────────────
+  if (modelGroup && modelGroup.visible) {
+    const tX = modelGroup.userData.tX ?? 0;
+    const tZ = modelGroup.userData.tZ ?? -4;
+    modelGroup.position.x += (tX - modelGroup.position.x) * .08;
+    modelGroup.position.z += (tZ - modelGroup.position.z) * .08;
+    modelGroup.position.y  = Math.sin(T * .55) * .05;
+    if (!mixer) modelGroup.rotation.y = Math.sin(T * .3) * .1;
+
+    const aura = modelGroup.userData.aura;
+    if (aura) {
+      const pos = aura.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        pos.setY(i, pos.getY(i) + delta * .09);
+        if (pos.getY(i) > 2.2) pos.setY(i, -.05);
+      }
+      pos.needsUpdate = true;
+      aura.rotation.y += delta * .07;
+    }
+    const sb = scene.userData.sb;
+    if (sb) { const s = currentScale * .6; sb.scale.set(s,s,s); sb.material.opacity = .1 + Math.sin(T*.8)*.04; }
+  }
+
+  // Breadcrumb every 2s
+  if (T - lastBreadcrumb > 2) { lastBreadcrumb = T; recordBreadcrumb(); }
+
+  renderer.render(scene, cam);
+}
+
+// Resume audio
+['touchstart','click'].forEach(ev => addEventListener(ev, () => {
+  if (audioCtx?.state === 'suspended') audioCtx.resume();
+}, { once: true }));
+</script>
+</body>
+</html>
