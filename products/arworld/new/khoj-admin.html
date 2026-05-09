@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Khoj AR — Admin Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Yatra+One&family=Philosopher:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0c0a08;--surface:#161410;--card:#1e1b17;--border:rgba(200,160,80,.15);
+  --gold:#e8c97a;--saffron:#e85d04;--green:#22c55e;--blue:#60a5fa;
+  --text:#f0e8d8;--muted:#8a7a62;--danger:#ef4444;
+}
+html,body{min-height:100%;background:var(--ink);color:var(--text);font-family:'Inter',sans-serif;font-size:14px}
+
+/* ── NAV ── */
+nav{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 20px;display:flex;align-items:center;justify-content:space-between;
+  height:52px;position:sticky;top:0;z-index:50;
+}
+.nav-brand{font-family:'Yatra One',serif;font-size:18px;color:var(--gold);letter-spacing:1px}
+.nav-brand span{color:var(--saffron);font-size:11px;font-family:'Inter',sans-serif;letter-spacing:2px;display:block;margin-top:-4px;font-weight:500}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .2s;border:none;background:none}
+.nav-tab:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.nav-tab.active{color:var(--gold);background:rgba(232,201,122,.1)}
+.nav-badge{background:var(--saffron);color:#fff;font-size:9px;padding:1px 5px;border-radius:20px;margin-left:4px;font-weight:600}
+
+/* ── LAYOUT ── */
+.page{display:none;padding:20px;max-width:900px;margin:0 auto}
+.page.active{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.card-title{font-family:'Yatra One',serif;font-size:15px;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title .icon{font-size:18px}
+
+/* ── FORM ── */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;font-weight:500}
+.field input,.field select,.field textarea{
+  width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Inter',sans-serif;
+  font-size:13px;outline:none;transition:border-color .2s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(232,201,122,.4)}
+.field input::placeholder,.field textarea::placeholder{color:rgba(240,232,216,.2)}
+.field select option{background:#1e1b17}
+.field textarea{resize:vertical;min-height:72px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-hint{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,#c8940a,#e85d04);color:#0c0a08}
+.btn-gold:hover{opacity:.9;transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:rgba(232,201,122,.4);color:var(--text)}
+.btn-danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#ef4444}
+.btn-danger:hover{background:rgba(239,68,68,.2)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
+.btn-full{width:100%;justify-content:center}
+
+/* ── THEME PICKER ── */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:14px}
+.theme-tile{border:1px solid var(--border);border-radius:12px;padding:12px 10px;cursor:pointer;text-align:center;transition:all .2s;background:rgba(255,255,255,.02)}
+.theme-tile:hover{border-color:rgba(232,201,122,.3)}
+.theme-tile.sel{border-color:var(--gold);background:rgba(232,201,122,.08);box-shadow:0 0 14px rgba(232,201,122,.12)}
+.theme-tile .t-icon{font-size:28px;margin-bottom:5px}
+.theme-tile .t-name{font-size:11px;font-weight:600;color:var(--gold)}
+.theme-tile .t-desc{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3}
+
+/* ── COLOUR SWATCHES ── */
+.color-row{display:flex;gap:8px;flex-wrap:wrap}
+.swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0}
+.swatch.sel{border-color:#fff;transform:scale(1.15)}
+
+/* ── OBJECTS LIST ── */
+.obj-list{display:flex;flex-direction:column;gap:8px}
+.obj-row{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:12px}
+.obj-row-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.obj-row-body{flex:1;min-width:0}
+.obj-row-name{font-weight:600;color:var(--text);font-size:13px;margin-bottom:2px}
+.obj-row-meta{font-size:11px;color:var(--muted);line-height:1.5}
+.obj-row-actions{display:flex;gap:6px;flex-shrink:0}
+.obj-empty{text-align:center;padding:32px;color:var(--muted);font-size:13px}
+.cat-badge{display:inline-block;font-size:9px;padding:1px 7px;border-radius:20px;font-weight:500;margin-right:4px}
+.cat-deity    {background:rgba(232,201,122,.15);color:var(--gold)}
+.cat-exhibit  {background:rgba(96,165,250,.15);color:var(--blue)}
+.cat-landmark {background:rgba(167,139,250,.15);color:#a78bfa}
+.cat-story    {background:rgba(52,211,153,.15);color:#34d399}
+.cat-offering {background:rgba(249,115,22,.15);color:#f97316}
+.cat-message  {background:rgba(236,72,153,.15);color:#ec4899}
+.cat-animal   {background:rgba(34,197,94,.15);color:var(--green)}
+
+/* ── MAP ── */
+#admin-map-canvas{width:100%;background:#0d0a06;border-radius:12px;cursor:crosshair}
+
+/* ── PUBLISH ── */
+.publish-box{background:linear-gradient(135deg,rgba(232,201,122,.06),rgba(232,93,4,.04));border:1px solid rgba(232,201,122,.2);border-radius:14px;padding:22px;text-align:center}
+.publish-code{font-family:monospace;font-size:22px;color:var(--gold);letter-spacing:4px;margin:12px 0;padding:10px 20px;background:rgba(232,201,122,.08);border-radius:8px;display:inline-block;cursor:pointer}
+.publish-url{font-size:12px;color:var(--muted);word-break:break-all;margin:6px 0 14px}
+.qr-placeholder{width:120px;height:120px;background:rgba(255,255,255,.9);border-radius:8px;margin:12px auto;display:flex;align-items:center;justify-content:center;font-size:11px;color:#333}
+
+/* ── GPS STATUS ── */
+.gps-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.18);border-radius:8px;margin-bottom:12px;font-size:12px}
+.gps-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:gpsblink 1.5s ease-in-out infinite;flex-shrink:0}
+.gps-dot.searching{background:var(--gold);animation:gpsblink .8s ease-in-out infinite}
+.gps-dot.off{background:var(--danger);animation:none}
+@keyframes gpsblink{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:500;display:none;pointer-events:none;backdrop-filter:blur(12px);white-space:nowrap}
+#toast.ok{background:rgba(34,197,94,.9);color:#fff}
+#toast.err{background:rgba(239,68,68,.9);color:#fff}
+#toast.info{background:rgba(96,165,250,.9);color:#fff}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center}
+.stat-val{font-family:'Yatra One',serif;font-size:24px;color:var(--gold)}
+.stat-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+/* ── MODAL ── */
+#modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:20px}
+#modal-bg.open{display:flex}
+#modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Yatra One',serif;font-size:16px;color:var(--gold);margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="nav-brand">Khoj AR <span>ADMIN PORTAL</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="tab('theme')">🎨 Theme</button>
+    <button class="nav-tab" onclick="tab('objects')">📍 Objects <span class="nav-badge" id="obj-count">0</span></button>
+    <button class="nav-tab" onclick="tab('map')">🗺 Map</button>
+    <button class="nav-tab" onclick="tab('publish')">🚀 Publish</button>
+  </div>
+</nav>
+
+<!-- ══ THEME PAGE ══ -->
+<div class="page active" id="page-theme">
+  <div class="card">
+    <div class="card-title"><span class="icon">🎯</span> Choose a Theme Preset</div>
+    <div class="theme-grid" id="theme-grid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">✏️</span> Customise</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Experience Name</label>
+        <input id="t-name" placeholder="e.g. Diwali Hunt 2025" oninput="saveTheme()"/>
+      </div>
+      <div class="field">
+        <label>Welcome Message</label>
+        <input id="t-welcome" placeholder="Find all 7 diyas!" oninput="saveTheme()"/>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Icon / Emoji</label>
+        <input id="t-icon" placeholder="🪔" maxlength="4" oninput="saveTheme()"/>
+      </div>
+      <div class="field">
+        <label>Ambient Music URL (mp3/ogg)</label>
+        <input id="t-music" placeholder="https://…/tabla.mp3" oninput="saveTheme()"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Accent Colour</label>
+      <div class="color-row" id="color-row"></div>
+    </div>
+    <div class="field-row" style="margin-top:12px">
+      <div class="field">
+        <label>Expiry Date (optional)</label>
+        <input id="t-expiry" type="date" oninput="saveTheme()"/>
+      </div>
+      <div class="field">
+        <label>Visitor Password (optional)</label>
+        <input id="t-password" type="password" placeholder="Leave blank for open access" oninput="saveTheme()"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OBJECTS PAGE ══ -->
+<div class="page" id="page-objects">
+  <div class="gps-bar">
+    <div class="gps-dot searching" id="gps-dot"></div>
+    <span id="gps-label">Getting GPS location…</span>
+  </div>
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between">
+      <span><span class="icon">📍</span> Placed Objects</span>
+      <button class="btn btn-gold btn-sm" onclick="openDropModal()">+ Drop Object Here</button>
+    </div>
+    <div class="obj-list" id="obj-list"><div class="obj-empty">No objects yet — walk to a spot and drop one!</div></div>
+  </div>
+</div>
+
+<!-- ══ MAP PAGE ══ -->
+<div class="page" id="page-map">
+  <div class="stats-row" id="stats-row"></div>
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between">
+      <span><span class="icon">🗺</span> Object Map</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="drawAdminMap()">↻ Refresh</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAll()">🗑 Clear All</button>
+      </div>
+    </div>
+    <canvas id="admin-map-canvas" height="380"></canvas>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px">
+      <span style="font-size:11px;color:var(--muted)">● You &nbsp; </span>
+      <span style="font-size:11px;color:var(--gold)">● Deity &nbsp;</span>
+      <span style="font-size:11px;color:var(--blue)">● Exhibit &nbsp;</span>
+      <span style="font-size:11px;color:#a78bfa">● Landmark &nbsp;</span>
+      <span style="font-size:11px;color:#34d399">● Story &nbsp;</span>
+      <span style="font-size:11px;color:#f97316">● Offering &nbsp;</span>
+      <span style="font-size:11px;color:#ec4899">● Message &nbsp;</span>
+      <span style="font-size:11px;color:var(--green)">● Animal</span>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-outline" onclick="exportJSON()">📤 Export JSON</button>
+    <label class="btn btn-outline" style="cursor:pointer">📥 Import JSON<input type="file" accept=".json" style="display:none" onchange="importJSON(event)"/></label>
+  </div>
+</div>
+
+<!-- ══ PUBLISH PAGE ══ -->
+<div class="page" id="page-publish">
+  <div class="card">
+    <div class="card-title"><span class="icon">🚀</span> Publish Your Experience</div>
+    <div id="publish-content">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Review your experience before publishing. Visitors will use a unique link to explore.</p>
+      <div id="publish-preview"></div>
+      <button class="btn btn-gold btn-full" style="margin-top:14px" onclick="publish()">Publish Experience →</button>
+    </div>
+    <div class="publish-box" id="publish-box" style="display:none">
+      <div style="font-size:13px;color:var(--muted)">Share this link with visitors</div>
+      <div class="publish-code" id="pub-code" onclick="copyLink()" title="Click to copy"></div>
+      <div class="publish-url" id="pub-url"></div>
+      <div class="qr-placeholder" id="qr-box">QR code generated when hosted</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-gold" onclick="copyLink()">📋 Copy Link</button>
+        <button class="btn btn-outline" onclick="openVisitor()">👁 Preview Visitor View</button>
+        <button class="btn btn-outline" onclick="shareWhatsApp()">💬 Share on WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DROP OBJECT MODAL ══ -->
+<div id="modal-bg">
+  <div id="modal">
+    <div class="modal-title">📍 Drop Object at Current Location</div>
+    <div class="field">
+      <label>Object Name *</label>
+      <input id="m-name" placeholder="e.g. Lord Ganesha at East Gate"/>
+    </div>
+    <div class="field">
+      <label>Description / Message (shown to visitor on reveal)</label>
+      <textarea id="m-desc" placeholder="Write a message, lore, fact, or clue…"></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Category</label>
+        <select id="m-cat">
+          <option value="deity">🕉 Deity</option>
+          <option value="exhibit">🏺 Exhibit</option>
+          <option value="landmark">🏛 Landmark</option>
+          <option value="story">📖 Story</option>
+          <option value="offering">🪔 Offering</option>
+          <option value="message">💌 Message</option>
+          <option value="animal">🦁 Animal</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Reveal Radius</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="m-radius" min="2" max="100" value="5" style="flex:1" oninput="document.getElementById('m-rad-val').textContent=this.value+'m'"/>
+          <span id="m-rad-val" style="color:var(--gold);font-weight:600;min-width:36px">5m</span>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>3D Model URL (.glb) — optional</label>
+      <input id="m-glb" placeholder="https://…/model.glb"/>
+      <div class="field-hint">Leave blank to use theme default. Free models: sketchfab.com, poly.pizza</div>
+    </div>
+    <div class="field">
+      <label>Sound URL (.mp3/.ogg) — optional</label>
+      <input id="m-sound" placeholder="https://…/mantra.mp3"/>
+      <div class="field-hint">Plays when visitor is within reveal range</div>
+    </div>
+    <div class="field">
+      <label>Hint (shown on map when visitor is close)</label>
+      <input id="m-hint" placeholder="e.g. Near the banyan tree"/>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">📍 Will drop at: <span id="m-gps" style="color:var(--gold)">Getting location…</span></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-gold" style="flex:1" onclick="confirmDrop()">Drop Here</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════
+const STORAGE_KEY = 'khoj_theme';
+const OBJECTS_KEY = 'khoj_objects';
+
+const THEME_PRESETS = [
+  {id:'kids',   icon:'🦁', name:'Kids Safari',    color:'#22c55e', desc:'Animals in rooms',       music:'', welcome:'Find all the animals hiding in the house!'},
+  {id:'temple', icon:'🕉', name:'Temple Guide',   color:'#e8c97a', desc:'Deity at each spot',     music:'', welcome:'Walk the sacred path and discover the divine.'},
+  {id:'diwali', icon:'🪔', name:'Diwali Hunt',    color:'#e85d04', desc:'Festival of lights',     music:'', welcome:'Find all 7 diyas hidden around the venue!'},
+  {id:'navratri',icon:'⚔️',name:'Navratri',       color:'#ec4899', desc:'Nine nights of Durga',   music:'', welcome:'Seek the nine forms of Goddess Durga.'},
+  {id:'campus', icon:'🏫', name:'Campus Hunt',    color:'#60a5fa', desc:'College activities',     music:'', welcome:'Complete the campus challenge to win!'},
+  {id:'museum', icon:'🏛', name:'Museum Guide',   color:'#a78bfa', desc:'Exhibits with audio',    music:'', welcome:'Discover the stories behind each exhibit.'},
+  {id:'office', icon:'🏢', name:'Office Tour',    color:'#34d399', desc:'Onboarding trail',       music:'', welcome:'Welcome! Explore your new workplace.'},
+  {id:'custom', icon:'✨', name:'Custom',         color:'#e8c97a', desc:'Build from scratch',     music:'', welcome:'Welcome to this AR experience!'},
+];
+
+const CAT_COLORS = {
+  deity:'#e8c97a', exhibit:'#60a5fa', landmark:'#a78bfa',
+  story:'#34d399', offering:'#f97316', message:'#ec4899', animal:'#22c55e'
+};
+
+const CAT_ICONS = {
+  deity:'🕉', exhibit:'🏺', landmark:'🏛',
+  story:'📖', offering:'🪔', message:'💌', animal:'🦁'
+};
+
+const ACCENT_COLORS = ['#e8c97a','#e85d04','#22c55e','#60a5fa','#a78bfa','#ec4899','#f97316','#34d399','#ef4444','#fff'];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let theme = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || {
+  id: 'khoj_' + Date.now(),
+  preset: 'custom',
+  name: '',
+  icon: '✨',
+  color: '#e8c97a',
+  welcome: '',
+  music: '',
+  expiry: '',
+  password: '',
+};
+let objects = JSON.parse(localStorage.getItem(OBJECTS_KEY) || '[]');
+let userLat = null, userLng = null;
+let mapT = 0, mapAnimId = null;
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+(function init() {
+  buildThemeGrid();
+  buildColorRow();
+  loadFormValues();
+  renderObjList();
+  updateObjBadge();
+  startGPS();
+})();
+
+function buildThemeGrid() {
+  const el = document.getElementById('theme-grid');
+  el.innerHTML = THEME_PRESETS.map(p => `
+    <div class="theme-tile ${theme.preset===p.id?'sel':''}" onclick="pickPreset('${p.id}')">
+      <div class="t-icon">${p.icon}</div>
+      <div class="t-name">${p.name}</div>
+      <div class="t-desc">${p.desc}</div>
+    </div>
+  `).join('');
+}
+
+function buildColorRow() {
+  const el = document.getElementById('color-row');
+  el.innerHTML = ACCENT_COLORS.map(c => `
+    <div class="swatch ${theme.color===c?'sel':''}" style="background:${c}" onclick="pickColor('${c}')" title="${c}"></div>
+  `).join('');
+}
+
+function loadFormValues() {
+  document.getElementById('t-name').value    = theme.name    || '';
+  document.getElementById('t-welcome').value = theme.welcome || '';
+  document.getElementById('t-icon').value    = theme.icon    || '';
+  document.getElementById('t-music').value   = theme.music   || '';
+  document.getElementById('t-expiry').value  = theme.expiry  || '';
+  document.getElementById('t-password').value= theme.password|| '';
+}
+
+// ══════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════
+function tab(name) {
+  document.querySelectorAll('.nav-tab').forEach((b,i) => {
+    b.classList.toggle('active', ['theme','objects','map','publish'][i] === name);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if (name === 'map') { setTimeout(drawAdminMap, 50); }
+  if (name === 'publish') renderPublishPreview();
+}
+
+// ══════════════════════════════════════════
+//  THEME
+// ══════════════════════════════════════════
+function pickPreset(id) {
+  const p = THEME_PRESETS.find(x => x.id === id);
+  if (!p) return;
+  theme.preset  = id;
+  theme.icon    = p.icon;
+  theme.color   = p.color;
+  theme.welcome = p.welcome;
+  theme.music   = p.music;
+  loadFormValues();
+  buildThemeGrid();
+  buildColorRow();
+  saveTheme();
+}
+
+function pickColor(c) {
+  theme.color = c;
+  buildColorRow();
+  saveTheme();
+}
+
+function saveTheme() {
+  theme.name     = document.getElementById('t-name').value;
+  theme.welcome  = document.getElementById('t-welcome').value;
+  theme.icon     = document.getElementById('t-icon').value || '✨';
+  theme.music    = document.getElementById('t-music').value;
+  theme.expiry   = document.getElementById('t-expiry').value;
+  theme.password = document.getElementById('t-password').value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(theme));
+}
+
+// ══════════════════════════════════════════
+//  GPS
+// ══════════════════════════════════════════
+function startGPS() {
+  const dot = document.getElementById('gps-dot');
+  const label = document.getElementById('gps-label');
+  if (!navigator.geolocation) { label.textContent = 'GPS not available — using simulation'; startSimGPS(); return; }
+  navigator.geolocation.watchPosition(
+    pos => {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      dot.className = 'gps-dot';
+      label.textContent = `GPS: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+      document.getElementById('m-gps').textContent = `${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+    },
+    () => { label.textContent = 'GPS unavailable — using simulation'; startSimGPS(); },
+    { enableHighAccuracy: true, maximumAge: 3000 }
+  );
+}
+
+function startSimGPS() {
+  if (userLat) return;
+  userLat = 12.97165 + (Math.random() - 0.5) * 0.001;
+  userLng = 77.59460 + (Math.random() - 0.5) * 0.001;
+  const label = document.getElementById('gps-label');
+  const dot   = document.getElementById('gps-dot');
+  dot.className = 'gps-dot searching';
+  label.textContent = `Simulated: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+  document.getElementById('m-gps').textContent = `${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+}
+
+// ══════════════════════════════════════════
+//  DROP OBJECT MODAL
+// ══════════════════════════════════════════
+function openDropModal() {
+  if (!userLat) { startSimGPS(); }
+  document.getElementById('m-gps').textContent = userLat
+    ? `${userLat.toFixed(5)}, ${userLng.toFixed(5)}`
+    : 'Waiting for GPS…';
+  // Clear fields
+  ['m-name','m-desc','m-glb','m-sound','m-hint'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-radius').value = 5;
+  document.getElementById('m-rad-val').textContent = '5m';
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+}
+
+function confirmDrop() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) { toast('Please enter an object name', 'err'); return; }
+  if (!userLat) { toast('GPS not ready yet', 'err'); return; }
+
+  const obj = {
+    id:          'obj_' + Date.now(),
+    name,
+    description: document.getElementById('m-desc').value.trim(),
+    category:    document.getElementById('m-cat').value,
+    radius:      parseInt(document.getElementById('m-radius').value),
+    lat:         userLat,
+    lng:         userLng,
+    glbUrl:      document.getElementById('m-glb').value.trim(),
+    soundUrl:    document.getElementById('m-sound').value.trim(),
+    hint:        document.getElementById('m-hint').value.trim(),
+    createdAt:   Date.now(),
+    foundCount:  0,
+  };
+
+  objects.push(obj);
+  saveObjects();
+  closeModal();
+  renderObjList();
+  updateObjBadge();
+  toast(`✅ "${name}" dropped!`, 'ok');
+}
+
+// ══════════════════════════════════════════
+//  OBJECTS
+// ══════════════════════════════════════════
+function saveObjects() {
+  localStorage.setItem(OBJECTS_KEY, JSON.stringify(objects));
+}
+
+function deleteObj(id) {
+  objects = objects.filter(o => o.id !== id);
+  saveObjects();
+  renderObjList();
+  updateObjBadge();
+  toast('Object removed', 'info');
+}
+
+function updateObjBadge() {
+  document.getElementById('obj-count').textContent = objects.length;
+}
+
+function renderObjList() {
+  const el = document.getElementById('obj-list');
+  if (!objects.length) {
+    el.innerHTML = '<div class="obj-empty">No objects yet — walk to a spot and drop one!</div>';
+    return;
+  }
+  el.innerHTML = objects.map(obj => `
+    <div class="obj-row">
+      <div class="obj-row-icon">${CAT_ICONS[obj.category] || '📍'}</div>
+      <div class="obj-row-body">
+        <div class="obj-row-name">${obj.name}</div>
+        <div class="obj-row-meta">
+          <span class="cat-badge cat-${obj.category}">${obj.category}</span>
+          ${obj.description ? `<span style="color:var(--text)">${obj.description.slice(0,60)}${obj.description.length>60?'…':''}</span>` : ''}
+        </div>
+        <div class="obj-row-meta" style="margin-top:3px">
+          📍 ${obj.lat.toFixed(4)}, ${obj.lng.toFixed(4)} &nbsp;·&nbsp;
+          📏 ${obj.radius}m radius &nbsp;·&nbsp;
+          ${obj.glbUrl ? '🎭 Custom GLB &nbsp;·&nbsp;' : ''}
+          ${obj.soundUrl ? '🔔 Sound &nbsp;·&nbsp;' : ''}
+          ${obj.hint ? `💡 "${obj.hint}"` : ''}
+        </div>
+      </div>
+      <div class="obj-row-actions">
+        <button class="btn btn-danger btn-sm" onclick="deleteObj('${obj.id}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  MAP
+// ══════════════════════════════════════════
+function drawAdminMap() {
+  const canvas = document.getElementById('admin-map-canvas');
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = 380;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Background
+  const bg = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)/1.5);
+  bg.addColorStop(0,'#14100a'); bg.addColorStop(1,'#0c0a06');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='rgba(200,160,80,.05)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  if (!objects.length && !userLat) {
+    ctx.fillStyle='rgba(200,160,80,.3)';ctx.font='13px Inter,sans-serif';
+    ctx.textAlign='center';ctx.fillText('Drop objects to see them on the map',W/2,H/2);
+    return;
+  }
+
+  // Bounds
+  const lats = objects.map(o=>o.lat); if(userLat)lats.push(userLat);
+  const lngs = objects.map(o=>o.lng); if(userLng)lngs.push(userLng);
+  let minLat=Math.min(...lats),maxLat=Math.max(...lats);
+  let minLng=Math.min(...lngs),maxLng=Math.max(...lngs);
+  const minRange=0.0003;
+  if(maxLat-minLat<minRange){const m=(maxLat+minLat)/2;minLat=m-minRange/2;maxLat=m+minRange/2;}
+  if(maxLng-minLng<minRange){const m=(maxLng+minLng)/2;minLng=m-minRange/2;maxLng=m+minRange/2;}
+  const pad=48;
+  const toXY=(lat,lng)=>({
+    x:pad+((lng-minLng)/(maxLng-minLng))*(W-pad*2),
+    y:H-pad-((lat-minLat)/(maxLat-minLat))*(H-pad*2)
+  });
+
+  // Objects
+  objects.forEach(obj => {
+    const {x,y} = toXY(obj.lat,obj.lng);
+    const col = CAT_COLORS[obj.category]||'#e8c97a';
+    // Radius
+    const mpp=111320*Math.cos(obj.lat*Math.PI/180);
+    const rx=(obj.radius/mpp/(maxLng-minLng))*(W-pad*2);
+    const ry=(obj.radius/111320/(maxLat-minLat))*(H-pad*2);
+    ctx.beginPath();ctx.ellipse(x,y,Math.max(rx,6),Math.max(ry,6),0,0,Math.PI*2);
+    ctx.fillStyle=col+'18';ctx.fill();
+    ctx.strokeStyle=col+'50';ctx.lineWidth=1;ctx.stroke();
+    // Dot
+    ctx.save();ctx.shadowColor=col;ctx.shadowBlur=12;
+    ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);
+    ctx.fillStyle=col;ctx.fill();ctx.restore();
+    ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fillStyle='#0c0a06';ctx.fill();
+    // Name
+    ctx.fillStyle='rgba(240,232,216,.7)';ctx.font='10px Inter,sans-serif';
+    ctx.textAlign='center';ctx.fillText(obj.name.slice(0,14),x,y+18);
+  });
+
+  // User
+  if(userLat){
+    const {x,y}=toXY(userLat,userLng);
+    ctx.save();ctx.shadowColor='#fff';ctx.shadowBlur=10;
+    ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);
+    ctx.fillStyle='#ffffff';ctx.fill();ctx.restore();
+    // Direction triangle
+    ctx.beginPath();ctx.moveTo(x,y-14);ctx.lineTo(x-5,y-4);ctx.lineTo(x+5,y-4);
+    ctx.closePath();ctx.fillStyle='rgba(255,255,255,.6)';ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='9px Inter,sans-serif';
+    ctx.textAlign='center';ctx.fillText('YOU',x,y+16);
+  }
+
+  // Scale
+  const mPerPx=gpsDistance(minLat,minLng,minLat,maxLng)/(W-pad*2);
+  let barM=5;
+  for(const s of[1,2,5,10,20,50,100,200,500]){if(s/mPerPx>50){barM=s;break;}}
+  const barPx=barM/mPerPx;
+  ctx.fillStyle='rgba(200,160,80,.5)';ctx.fillRect(pad,H-pad+14,barPx,2);
+  ctx.fillRect(pad,H-pad+10,1.5,8);ctx.fillRect(pad+barPx,H-pad+10,1.5,8);
+  ctx.fillStyle='rgba(200,160,80,.4)';ctx.font='9px Inter,sans-serif';
+  ctx.textAlign='center';ctx.fillText(barM<1000?barM+'m':(barM/1000)+'km',pad+barPx/2,H-pad+28);
+
+  // Title
+  ctx.fillStyle='rgba(200,160,80,.4)';ctx.font='500 11px Inter,sans-serif';
+  ctx.textAlign='left';ctx.fillText(`⛩  ${theme.name||'Khoj AR'}`, pad, pad-8);
+  ctx.textAlign='right';ctx.fillText(`${objects.length} objects placed`, W-pad, pad-8);
+}
+
+function gpsDistance(lat1,lng1,lat2,lng2){
+  const R=6371000,dL=(lat2-lat1)*Math.PI/180,dG=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dG/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// Stats
+function renderStats() {
+  const el = document.getElementById('stats-row');
+  el.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${objects.length}</div><div class="stat-label">Objects</div></div>
+    <div class="stat-card"><div class="stat-val">${objects.filter(o=>o.glbUrl).length}</div><div class="stat-label">With 3D</div></div>
+    <div class="stat-card"><div class="stat-val">${objects.filter(o=>o.soundUrl).length}</div><div class="stat-label">With Sound</div></div>
+    <div class="stat-card"><div class="stat-val">${objects.reduce((s,o)=>s+o.foundCount,0)}</div><div class="stat-label">Found</div></div>
+  `;
+}
+
+// ══════════════════════════════════════════
+//  PUBLISH
+// ══════════════════════════════════════════
+function renderPublishPreview() {
+  renderStats();
+  const el = document.getElementById('publish-preview');
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">THEME</div>
+        <div style="font-size:15px">${theme.icon} ${theme.name||'Untitled'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${theme.welcome||'No welcome message'}</div>
+      </div>
+      <div style="padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">OBJECTS</div>
+        <div style="font-size:15px;color:var(--gold)">${objects.length} placed</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${objects.map(o=>o.name).slice(0,3).join(', ')}${objects.length>3?'…':''}</div>
+      </div>
+    </div>
+    ${!theme.name ? '<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px;font-size:12px;color:#ef4444;margin-bottom:10px">⚠ Add a name to your experience before publishing</div>' : ''}
+    ${!objects.length ? '<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px;font-size:12px;color:#ef4444">⚠ Drop at least one object before publishing</div>' : ''}
+  `;
+}
+
+function publish() {
+  saveTheme();
+  if (!theme.name) { toast('Add a name first', 'err'); return; }
+  if (!objects.length) { toast('Drop at least one object first', 'err'); return; }
+
+  // Generate visitor bundle JSON
+  const bundle = {
+    theme: { ...theme, password: theme.password ? btoa(theme.password) : '' },
+    objects,
+    publishedAt: Date.now(),
+    version: 1,
+  };
+  localStorage.setItem('khoj_bundle_' + theme.id, JSON.stringify(bundle));
+  localStorage.setItem('khoj_latest_bundle', JSON.stringify(bundle));
+
+  // Show publish box
+  const code = theme.id.split('_').pop().slice(-6).toUpperCase();
+  const url  = window.location.href.replace('admin.html','visitor.html') + '?t=' + theme.id;
+  document.getElementById('pub-code').textContent = code;
+  document.getElementById('pub-url').textContent  = url;
+  document.getElementById('publish-box').style.display = 'block';
+  document.getElementById('publish-content').style.display = 'none';
+  toast('🎉 Published! Share the link with visitors', 'ok');
+}
+
+function copyLink() {
+  const url = document.getElementById('pub-url').textContent;
+  navigator.clipboard.writeText(url).then(() => toast('Link copied!', 'ok'));
+}
+
+function openVisitor() {
+  const url = window.location.href.replace('khoj-admin.html','khoj-visitor.html');
+  window.open(url, '_blank');
+}
+
+function shareWhatsApp() {
+  const url = document.getElementById('pub-url').textContent;
+  const msg = encodeURIComponent(`🕉 Join our Khoj AR experience!\n\n${theme.icon} ${theme.name}\n${theme.welcome}\n\nOpen this link on your phone: ${url}`);
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+// ══════════════════════════════════════════
+//  EXPORT / IMPORT
+// ══════════════════════════════════════════
+function exportJSON() {
+  const data = { theme, objects };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `khoj-${theme.name||'export'}-${Date.now()}.json`;
+  a.click();
+  toast('JSON exported', 'ok');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.theme)   { theme = data.theme;    localStorage.setItem(STORAGE_KEY, JSON.stringify(theme)); loadFormValues(); buildThemeGrid(); buildColorRow(); }
+      if (data.objects) { objects = data.objects; saveObjects(); renderObjList(); updateObjBadge(); }
+      toast(`Imported ${objects.length} objects`, 'ok');
+      drawAdminMap();
+    } catch { toast('Invalid JSON file', 'err'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearAll() {
+  if (!confirm('Delete all placed objects? This cannot be undone.')) return;
+  objects = [];
+  saveObjects();
+  renderObjList();
+  updateObjBadge();
+  drawAdminMap();
+  toast('All objects cleared', 'info');
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function toast(msg, type='info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = type; el.style.display = 'block';
+  clearTimeout(el._t); el._t = setTimeout(()=>el.style.display='none', 3500);
+}
+</script>
+</body>
+</html>
