@@ -1010,6 +1010,9 @@ function hideInlineLoader(){document.getElementById('inline-loader').style.displ
 
 function loadModel(url, obj) {
   if(!url){toast('No model URL','err');return;}
+  // Normalise — accept .glb, .gltf, blob:, relative paths
+  const ok = /\.(glb|gltf)(\?.*)?$/i.test(url) || url.startsWith('blob:') || url.startsWith('data:');
+  if(!ok){ toast('Model must be .glb or .gltf', 'err'); return; }
   if(modelGroup){scene.remove(modelGroup);modelGroup=null;}
   if(mixer){mixer.stopAllAction();mixer=null;}
   animActions=[];
